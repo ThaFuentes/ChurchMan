@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('{{ url_for('static', filename='images/login.png') }}');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        form {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0px 0px 10px 0px #aaa;
+            border-radius: 10px;
+        }
+        label, input {
+            display: block;
+            margin: 10px auto;
+            width: 80%;
+            font-size: 1em;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 85%;
+            border-radius: 5px;
+        }
+        .error {
+            color: red;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #333;
+        }
+        .reset-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .reset-link a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        .reset-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <form method="POST">
+        <h2>Login</h2>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="error">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <label for="username">Username:</label>
+        <input type="text" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" required>
+
+        <label for="input">Username & Password Are Case Sensitive</label>
+
+        <button type="submit">Login</button>
+
+        <!-- Add the "Can't remember password?" link here -->
+        <div class="reset-link">
+            <a href="{{ url_for('request_reset_password') }}">Can't remember password?</a>
+            <br>
+            <a href="{{ url_for('forgot_username') }}">Forgot Username?</a>
+        </div>
+
+    </form>
+</body>
+</html>

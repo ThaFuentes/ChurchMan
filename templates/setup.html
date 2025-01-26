@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Owner Account</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('{{ url_for('static', filename='images/setup.png') }}');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        form {
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0px 0px 10px 0px #aaa;
+            border-radius: 10px;
+        }
+        label, input, select {
+            display: block;
+            margin: 10px auto;
+            width: 80%;
+            font-size: 1em;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 85%;
+            border-radius: 5px;
+        }
+        .error {
+            color: red;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <form method="POST">
+        <h2>Setup Owner Account</h2>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="error">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <label for="first_name">First Name:</label>
+        <input type="text" name="first_name" required>
+
+        <label for="last_name">Last Name:</label>
+        <input type="text" name="last_name" required>
+
+        <label for="email">Email:</label>
+        <input type="email" name="email" required>
+
+        <label for="confirm_email">Confirm Email:</label>
+        <input type="email" name="confirm_email" required>
+
+        <label for="phone">Phone:</label>
+        <input type="text" name="phone" required>
+
+        <label for="address">Address:</label>
+        <input type="text" name="address" required>
+
+        <label for="username">Username:</label>
+        <input type="text" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" required>
+
+        <label for="confirm_password">Confirm Password:</label>
+        <input type="password" name="confirm_password" required>
+
+        <label for="accepts_emails">Accept Emails:</label>
+        <select name="accepts_emails" required>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
+
+        <button type="submit">Create Owner Account</button>
+    </form>
+</body>
+</html>
