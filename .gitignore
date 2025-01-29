@@ -8,3 +8,6 @@
 __pycache__/
 *.pyc
 *.pyo
+
+/env/
+/church_management.db
