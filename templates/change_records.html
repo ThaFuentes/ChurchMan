@@ -1,219 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Change Records</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            color: #fff;
-            background-image: url('{{ url_for('static', filename='images/change.png') }}');
-            background-size: cover;
-            background-position: center;
-        }
-        .header {
-            background-color: #000;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 2em;
-            color: #00FFFF;
-        }
-        .back-button {
-            position: absolute;
-            left: 20px;
-            top: 20px;
-            background-color: #00FFFF;
-            color: #000;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-        .controls-container {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.7);
-            margin: 20px;
-            border-radius: 10px;
-        }
-        .delete-all-button {
-            background-color: #FF0000;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-right: 20px;
-        }
-        .search-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .search-container input {
-            padding: 10px;
-            width: 100%;
-            max-width: 300px;
-            border-radius: 5px;
-            border: 1px solid #00FFFF;
-            background-color: #222;
-            color: #fff;
-            margin-right: 10px;
-        }
-        .search-container button {
-            padding: 10px 20px;
-            background-color: #00FFFF;
-            color: #000;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        table {
-            width: 100%;
-            margin: 20px 0;
-            border-collapse: collapse;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            color: #fff;
-            border: 1px solid #00FFFF;
-        }
-        th {
-            background-color: rgba(0, 255, 255, 0.8);
-            color: #000;
-            cursor: pointer;
-        }
-        td form {
-            display: inline;
-        }
-        td form button {
-            background-color: #FF0000;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-        .pagination {
-            text-align: center;
-            margin: 20px 0;
-        }
-        .pagination a {
-            color: #00FFFF;
-            padding: 10px 20px;
-            text-decoration: none;
-            background-color: #222;
-            border-radius: 5px;
-            margin: 0 5px;
-        }
-        .pagination a.disabled {
-            color: #555;
-            cursor: default;
-        }
-    </style>
-    <script>
-        function confirmDeleteAll() {
-            return confirm("Are you sure you want to delete all records? This action cannot be undone.");
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Change Records</title>
+  <style>
+    /* Base styles for desktop view */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #fff;
+      background-image: url('{{ url_for('static', filename='images/change.png') }}');
+      background-size: cover;
+      background-position: center;
+    }
+    .header {
+      background-color: #000;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2em;
+      color: #00FFFF;
+    }
+    .back-button {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      background-color: #00FFFF;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+    .controls-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.7);
+      margin: 20px;
+      border-radius: 10px;
+    }
+    .delete-all-button {
+      background-color: #FF0000;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .search-container {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    .search-container input {
+      padding: 10px;
+      width: 300px;
+      border-radius: 5px;
+      border: 1px solid #00FFFF;
+      background-color: #222;
+      color: #fff;
+      margin-right: 10px;
+    }
+    .search-container button {
+      padding: 10px 20px;
+      background-color: #00FFFF;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+      background-color: rgba(0, 0, 0, 0.7);
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #00FFFF;
+    }
+    th {
+      background-color: rgba(0, 255, 255, 0.8);
+      color: #000;
+      cursor: pointer;
+    }
+    td form {
+      display: inline;
+    }
+    td form button {
+      background-color: #FF0000;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .pagination {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .pagination a {
+      color: #00FFFF;
+      padding: 10px 20px;
+      text-decoration: none;
+      background-color: #222;
+      border-radius: 5px;
+      margin: 0 5px;
+    }
+    .pagination a.disabled {
+      color: #555;
+      cursor: default;
+    }
 
-        function confirmDeleteIndividual(event, recordId) {
-            const dontAskAgain = localStorage.getItem('dontAskDelete_' + recordId);
-            if (dontAskAgain === 'true') {
-                return true; // Skip confirmation
-            }
+    /* Mobile specific styles */
+    @media (max-width: 768px) {
+      .header {
+        padding: 10px;
+      }
+      .header h1 {
+        font-size: 1.5em;
+      }
+      .back-button {
+        position: static;
+        display: block;
+        width: 80%;
+        margin: 10px auto;
+        text-align: center;
+        padding: 8px;
+      }
+      .controls-container {
+        flex-direction: column;
+        align-items: center;
+        margin: 10px;
+        padding: 10px;
+      }
+      .delete-all-button {
+        width: 90%;
+        margin-bottom: 10px;
+      }
+      .search-container {
+        width: 90%;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .search-container input {
+        width: 90%;
+        margin-bottom: 10px;
+      }
+      .search-container button {
+        width: 90%;
+      }
+      table, th, td {
+        font-size: 0.9em;
+      }
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+      .pagination a {
+        padding: 8px 16px;
+        margin: 0 3px;
+      }
+    }
+  </style>
+  <script>
+    function confirmDeleteAll() {
+      return confirm("Are you sure you want to delete all records? This action cannot be undone.");
+    }
 
-            const confirmed = confirm("Are you sure you want to delete this record? This action cannot be undone.");
-            if (confirmed) {
-                const dontAsk = confirm("Do you want to skip this confirmation next time for this record?");
-                if (dontAsk) {
-                    localStorage.setItem('dontAskDelete_' + recordId, 'true');
-                }
-                return true;
-            } else {
-                event.preventDefault(); // Cancel the deletion if not confirmed
-                return false;
-            }
+    function confirmDeleteIndividual(event, recordId) {
+      const dontAskAgain = localStorage.getItem('dontAskDelete_' + recordId);
+      if (dontAskAgain === 'true') {
+        return true; // Skip confirmation
+      }
+
+      const confirmed = confirm("Are you sure you want to delete this record? This action cannot be undone.");
+      if (confirmed) {
+        const dontAsk = confirm("Do you want to skip this confirmation next time for this record?");
+        if (dontAsk) {
+          localStorage.setItem('dontAskDelete_' + recordId, 'true');
         }
-    </script>
+        return true;
+      } else {
+        event.preventDefault(); // Cancel deletion if not confirmed
+        return false;
+      }
+    }
+  </script>
 </head>
 <body>
-    <div class="header">
-        <h1>Change Records</h1>
-        <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
-    </div>
+  <div class="header">
+    <h1>Change Records</h1>
+    <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+  </div>
 
-    <!-- Controls Container -->
-    <div class="controls-container">
-        <form method="POST" action="{{ url_for('delete_all_records') }}" onsubmit="return confirmDeleteAll()">
-            <button type="submit" class="delete-all-button">Delete All Records</button>
+  <div class="controls-container">
+    <form method="POST" action="{{ url_for('delete_all_records') }}" onsubmit="return confirmDeleteAll()">
+      <button type="submit" class="delete-all-button">Delete All Records</button>
+    </form>
+
+    <div class="search-container">
+      <form method="GET" action="{{ url_for('change_records') }}">
+        <input type="text" name="search" placeholder="Search..." value="{{ search_query }}">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+
+  <table>
+    <tr>
+      <th><a href="{{ url_for('change_records', search=search_query, sort_by='user_id', sort_order=next_sort_order, page=page) }}">User ID</a></th>
+      <th><a href="{{ url_for('change_records', search=search_query, sort_by='username', sort_order=next_sort_order, page=page) }}">Username</a></th>
+      <th><a href="{{ url_for('change_records', search=search_query, sort_by='action', sort_order=next_sort_order, page=page) }}">Action</a></th>
+      <th><a href="{{ url_for('change_records', search=search_query, sort_by='target_id', sort_order=next_sort_order, page=page) }}">Target ID</a></th>
+      <th><a href="{{ url_for('change_records', search=search_query, sort_by='target_username', sort_order=next_sort_order, page=page) }}">Target Username</a></th>
+      <th><a href="{{ url_for('change_records', search=search_query, sort_by='change_details', sort_order=next_sort_order, page=page) }}">Change Details</a></th>
+      <th><a href="{{ url_for('change_records', search=search_query, sort_by='timestamp', sort_order=next_sort_order, page=page) }}">Timestamp</a></th>
+      <th>Actions</th>
+    </tr>
+    {% for record in records %}
+    <tr>
+      <td>{{ record['user_id'] }}</td>
+      <td>{{ record['username'] }}</td>
+      <td>{{ record['action'] }}</td>
+      <td>{{ record['target_id'] or 'N/A' }}</td>
+      <td>{{ record['target_username'] or 'N/A' }}</td>
+      <td>{{ record['change_details'] }}</td>
+      <td>{{ record['timestamp'] }}</td>
+      <td>
+        <form method="POST" action="{{ url_for('delete_record', id=record['id'], page=page) }}" onsubmit="return confirmDeleteIndividual(event, '{{ record['id'] }}')">
+          <button type="submit">Delete</button>
         </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
 
-        <!-- Search Form -->
-        <div class="search-container">
-            <form method="GET" action="{{ url_for('change_records') }}">
-                <input type="text" name="search" placeholder="Search..." value="{{ search_query }}">
-                <button type="submit">Search</button>
-            </form>
-        </div>
-    </div>
+  <div class="pagination">
+    {% if page > 1 %}
+      <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=page-1) }}">&laquo; Previous</a>
+    {% else %}
+      <a class="disabled">&laquo; Previous</a>
+    {% endif %}
 
-    <table>
-        <tr>
-            <th><a href="{{ url_for('change_records', search=search_query, sort_by='user_id', sort_order=next_sort_order, page=page) }}">User ID</a></th>
-            <th><a href="{{ url_for('change_records', search=search_query, sort_by='username', sort_order=next_sort_order, page=page) }}">Username</a></th>
-            <th><a href="{{ url_for('change_records', search=search_query, sort_by='action', sort_order=next_sort_order, page=page) }}">Action</a></th>
-            <th><a href="{{ url_for('change_records', search=search_query, sort_by='target_id', sort_order=next_sort_order, page=page) }}">Target ID</a></th>
-            <th><a href="{{ url_for('change_records', search=search_query, sort_by='target_username', sort_order=next_sort_order, page=page) }}">Target Username</a></th>
-            <th><a href="{{ url_for('change_records', search=search_query, sort_by='change_details', sort_order=next_sort_order, page=page) }}">Change Details</a></th>
-            <th><a href="{{ url_for('change_records', search=search_query, sort_by='timestamp', sort_order=next_sort_order, page=page) }}">Timestamp</a></th>
-            <th>Actions</th>
-        </tr>
-        {% for record in records %}
-        <tr>
-            <td>{{ record['user_id'] }}</td>
-            <td>{{ record['username'] }}</td>
-            <td>{{ record['action'] }}</td>
-            <td>{{ record['target_id'] or 'N/A' }}</td>
-            <td>{{ record['target_username'] or 'N/A' }}</td>
-            <td>{{ record['change_details'] }}</td>
-            <td>{{ record['timestamp'] }}</td>
-            <td>
-                <form method="POST" action="{{ url_for('delete_record', id=record['id'], page=page) }}" onsubmit="return confirmDeleteIndividual(event, '{{ record['id'] }}')">
-                    <button type="submit">Delete</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+    {% for p in range(1, total_pages + 1) %}
+      <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=p) }}" {% if p == page %}class="active"{% endif %}>{{ p }}</a>
+    {% endfor %}
 
-    <div class="pagination">
-        {% if page > 1 %}
-        <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=page-1) }}">&laquo; Previous</a>
-        {% else %}
-        <a class="disabled">&laquo; Previous</a>
-        {% endif %}
-
-        {% for p in range(1, total_pages + 1) %}
-        <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=p) }}" {% if p == page %}class="active"{% endif %}>{{ p }}</a>
-        {% endfor %}
-
-        {% if page < total_pages %}
-        <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=page+1) }}">Next &raquo;</a>
-        {% else %}
-        <a class="disabled">Next &raquo;</a>
-        {% endif %}
-    </div>
+    {% if page < total_pages %}
+      <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=page+1) }}">Next &raquo;</a>
+    {% else %}
+      <a class="disabled">Next &raquo;</a>
+    {% endif %}
+  </div>
 </body>
 </html>

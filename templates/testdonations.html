@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            background-image: url('{{ url_for('static', filename='images/donations.png') }}');
+            background-size: cover;
+            background-position: center;
+        }
+        .header {
+            background-color: #000;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #00FFFF;
+        }
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: #333;
+            border-bottom: 2px solid #00FFFF;
+        }
+        .menu a {
+            color: #fff;
+            text-decoration: none;
+            padding: 10px 20px;
+            background-color: #00FFFF;
+            color: #000;
+            border-radius: 5px;
+        }
+        .container {
+            display: flex;
+            padding: 20px;
+        }
+        .instructions {
+            color: #00FFFF;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .tree-view {
+            flex: 1;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            margin-right: 20px;
+        }
+        .search-bar {
+            margin-bottom: 10px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #00FFFF;
+            background-color: #222;
+            color: #fff;
+        }
+        .details {
+            flex: 2;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+        }
+        .details.active {
+            display: block;
+        }
+        .details h2 {
+            color: #00FFFF;
+        }
+        .tree-view ul {
+            list-style: none;
+            padding: 0;
+        }
+        .tree-view li {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+        }
+        .tree-view li:hover {
+            background-color: #00FFFF;
+            color: #000;
+        }
+        .tree-view .member-details {
+            flex: 1;
+        }
+        .tree-view .member-phone, .tree-view .member-role {
+            flex: 0.5;
+            text-align: right;
+        }
+        .add-donation-form input,
+        .add-donation-form select,
+        .add-donation-form textarea {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #00FFFF;
+            background-color: #222;
+            color: #fff;
+        }
+        .add-donation-form button {
+            padding: 10px 20px;
+            background-color: #00FFFF;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
+        }
+        .view-all-donations {
+            display: none;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        .view-all-donations.active {
+            display: block;
+        }
+        .view-all-donations h2 {
+            color: #00FFFF;
+        }
+        .view-all-donations table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .view-all-donations th, .view-all-donations td {
+            padding: 10px;
+            border: 1px solid #00FFFF;
+            color: #00FFFF;
+        }
+        .view-all-donations th {
+            background-color: #333;
+        }
+        .view-all-donations td {
+            background-color: #222;
+        }
+        .view-all-donations .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .view-all-donations .controls input,
+        .view-all-donations .controls select,
+        .view-all-donations .controls button {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #00FFFF;
+            background-color: #222;
+            color: #fff;
+        }
+        .view-all-donations .controls button {
+            background-color: #00FFFF;
+            color: #000;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: #333;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #00FFFF;
+            width: 50%;
+            color: #00FFFF;
+            box-shadow: 0px 0px 10px #00FFFF;
+            border-radius: 10px;
+        }
+        .modal-content h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .modal-content button {
+            background-color: #00FFFF;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 80%;
+            max-width: 200px;
+            display: block;
+            margin: 10px auto;
+        }
+        .close {
+            color: #00FFFF;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Manage Donations</h1>
+    </div>
+       <div class="menu">
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('view_all_members') }}">View All Members</a>
+        <a href="{{ url_for('view_all_donations') }}">View All Donations</a>
+        <a href="#" id="export-button">Export Donations Records</a>
+        <a href="{{ url_for('donations_dashboard') }}">Reports</a>
+        <a href="{{ url_for('donations_dashboard') }}">View All Non-Member Donations</a>
+        <a href="{{ url_for('add_user') }}">Add User</a>
+        <a href="{{ url_for('church_info') }}">Church Information</a>
+    </div>
+
+    <div class="instructions">
+        <p style="font-weight: bold; color: #CCCCCC; background-color: #000; padding: 10px; border-radius: 5px; text-align: center;">
+            Please double-click a member's name to add a donation.
+        </p>
+    </div>
+    <div class="container" id="members-section">
+        <div class="tree-view">
+            <h2>Members</h2>
+            <input type="text" id="search-bar" class="search-bar" placeholder="Search Members...">
+            <ul id="members-list">
+                {% if members %}
+                    {% for member in members %}
+                        <li data-name="{{ member.first_name }} {{ member.last_name }}" data-id="{{ member.id }}">
+                            <span class="member-details">{{ member.first_name }} {{ member.last_name }}</span>
+                            <span class="member-phone">{{ member.phone }}</span>
+                            <span class="member-role">{{ member.role }}</span>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li>No members found.</li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="details" id="donation-form-section">
+            <h2>Add Donation for Selected Member</h2>
+                <form class="add-donation-form" method="POST" action="{{ url_for('add_donation') }}">
+                <input type="hidden" id="donor-id" name="donor_id">
+                <input type="text" id="donor-name" name="name" placeholder="Donor Name" required readonly>
+                <input type="number" step="0.01" name="amount" placeholder="Donation Amount" required>
+                <input type="date" name="date" placeholder="Date" required>
+                <select name="method" required>
+                    <option value="">Select Payment Method</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Check">Check</option>
+                    <option value="Credit Card">Credit Card</option>
+                    <option value="Online">Online</option>
+                </select>
+                <textarea name="notes" placeholder="Additional Notes"></textarea>
+                <button type="submit">Add Donation</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- The Modal for Export Options -->
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-modal">&times;</span>
+            <h2>Export Donations Records</h2>
+            <button id="export-individual">Export Individual Records</button>
+            <button id="export-yearly">Export Yearly Members Record</button>
+        </div>
+    </div>
+
+    <!-- The Modal for Individual Records -->
+    <div id="individual-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-individual-modal">&times;</span>
+            <h2>Export Individual Records</h2>
+            <form method="POST" action="{{ url_for('export_individual') }}">
+                <label for="year-select-individual">Select Year:</label>
+                <select name="year" id="year-select-individual">
+                    <!-- Years will be populated via JavaScript -->
+                </select>
+                <label for="individual-member-select">Select Member:</label>
+                <div id="individual-member-tree">
+                    <input type="checkbox" id="select-all-members"> Select All<br>
+                    <ul id="member-list">
+                        <!-- Members will be populated via JavaScript -->
+                    </ul>
+                </div>
+                <input type="hidden" id="selected-member-name" name="individual_name">
+                <label for="save-location-individual">Save location:</label>
+                <input type="text" id="save-location-individual" name="save_location" placeholder="Enter save location or leave blank to use default">
+                <button type="submit">Export</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- The Modal for Yearly Records -->
+    <div id="yearly-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-yearly-modal">&times;</span>
+            <h2>Export Yearly Members Record</h2>
+            <form method="POST" action="{{ url_for('export_donations') }}">
+                <label for="year-select-yearly">Select Year:</label>
+                <select name="year" id="year-select-yearly">
+                    <!-- Years will be populated via JavaScript -->
+                </select>
+                <label for="save-location-yearly">Save location:</label>
+                <input type="text" id="save-location-yearly" name="save_location" placeholder="Enter save location or leave blank to use default">
+                <button type="submit">Export</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Handle member selection with double-click
+        document.getElementById('members-list').addEventListener('dblclick', function(event) {
+            const target = event.target.closest('li');
+            if (target) {
+                const selectedMemberName = target.getAttribute('data-name');
+                const selectedMemberId = target.getAttribute('data-id');
+                document.getElementById('donor-name').value = selectedMemberName;
+                document.getElementById('donor-id').value = selectedMemberId;
+                document.getElementById('donation-form-section').classList.add('active');
+            }
+        });
+
+        // Handle search bar functionality
+        document.getElementById('search-bar').addEventListener('keyup', function(event) {
+            const searchTerm = event.target.value.toLowerCase();
+            const members = document.getElementById('members-list').getElementsByTagName('li');
+            Array.from(members).forEach(function(member) {
+                const memberName = member.getAttribute('data-name').toLowerCase();
+                if (memberName.includes(searchTerm)) {
+                    member.style.display = 'block';
+                } else {
+                    member.style.display = 'none';
+                }
+            });
+        });
+
+        // Handle member selection for export
+        document.getElementById('member-list').addEventListener('change', function(event) {
+            const target = event.target.closest('li');
+            if (target) {
+                const selectedMemberName = target.getAttribute('data-name');
+                document.getElementById('selected-member-name').value = selectedMemberName;
+            }
+        });
+
+        // Modal logic
+        var exportModal = document.getElementById("export-modal");
+        var btn = document.getElementById("export-button");
+        var closeExport = document.getElementById("close-modal");
+        var individualModal = document.getElementById("individual-modal");
+        var yearlyModal = document.getElementById("yearly-modal");
+        var closeIndividual = document.getElementById("close-individual-modal");
+        var closeYearly = document.getElementById("close-yearly-modal");
+
+        btn.onclick = function() {
+            exportModal.style.display = "block";
+        }
+
+        closeExport.onclick = function() {
+            exportModal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == exportModal) {
+                exportModal.style.display = "none";
+            } else if (event.target == individualModal) {
+                individualModal.style.display = "none";
+            } else if (event.target == yearlyModal) {
+                yearlyModal.style.display = "none";
+            }
+        }
+
+        document.getElementById('export-individual').onclick = function() {
+            exportModal.style.display = "none";
+            individualModal.style.display = "block";
+            fetchYearsAndPopulate('individual');
+        }
+
+        document.getElementById('export-yearly').onclick = function() {
+            exportModal.style.display = "none";
+            yearlyModal.style.display = "block";
+            fetchYearsAndPopulate('yearly');
+        }
+
+        closeIndividual.onclick = function() {
+            individualModal.style.display = "none";
+        }
+
+        closeYearly.onclick = function() {
+            yearlyModal.style.display = "none";
+        }
+
+        function fetchYearsAndPopulate(type) {
+            fetch("{{ url_for('get_years') }}")
+                .then(response => response.json())
+                .then(years => {
+                    let yearSelect;
+                    if (type === 'individual') {
+                        yearSelect = document.getElementById('year-select-individual');
+                    } else if (type === 'yearly') {
+                        yearSelect = document.getElementById('year-select-yearly');
+                    }
+                    yearSelect.innerHTML = '';
+                    years.forEach(year => {
+                        const option = document.createElement('option');
+                        option.value = year;
+                        option.textContent = year;
+                        yearSelect.appendChild(option);
+                    });
+                    const currentYear = new Date().getFullYear();
+                    yearSelect.value = currentYear;
+
+                    // Automatically trigger the change event to populate the list for the most recent year
+                    if (type === 'individual') {
+                        yearSelect.dispatchEvent(new Event('change'));
+
+                        // Fetch the default save location for individual
+                        fetch("{{ url_for('get_export_location') }}")
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById('save-location-individual').value = data.export_location || '';
+                            });
+                    } else if (type === 'yearly') {
+                        // Fetch the default save location for yearly
+                        fetch("{{ url_for('get_export_location') }}")
+                            .then(response => response.json())
+                            .then(data => {
+                                document.getElementById('save-location-yearly').value = data.export_location || '';
+                            });
+                    }
+                });
+        }
+
+        document.getElementById('year-select-individual').addEventListener('change', function(event) {
+            const year = event.target.value;
+
+            fetch(`{{ url_for('donations.fetch_members_with_donations') }}?year=${year}`)
+                .then(response => response.json())
+                .then(members => {
+                    const memberList = document.getElementById('member-list');
+                    memberList.innerHTML = ''; // Clear existing list
+
+                    if (members.length === 0) {
+                        const noMembersMessage = document.createElement('li');
+                        noMembersMessage.textContent = 'No donations found for this year.';
+                        memberList.appendChild(noMembersMessage);
+                    } else {
+                        members.forEach(member => {
+                            const li = document.createElement('li');
+                            li.setAttribute('data-id', member.id);
+                            li.setAttribute('data-name', `${member.first_name} ${member.last_name}`);
+                            li.innerHTML = `<input type="checkbox" name="selected_members" value="${member.id}"> ${member.first_name} ${member.last_name}`;
+                            memberList.appendChild(li);
+                        });
+
+                        // Reattach the search event after members are populated
+                        document.getElementById('member-search-bar').addEventListener('keyup', function(event) {
+                            const searchTerm = event.target.value.toLowerCase();
+                            const memberItems = memberList.getElementsByTagName('li');
+                            Array.from(memberItems).forEach(function(memberItem) {
+                                const memberName = memberItem.getAttribute('data-name').toLowerCase();
+                                if (memberName.includes(searchTerm)) {
+                                    memberItem.style.display = 'block';
+                                } else {
+                                    memberItem.style.display = 'none';
+                                }
+                            });
+                        });
+
+                        // Handle Select All functionality
+                        document.getElementById('select-all-members').addEventListener('change', function(event) {
+                            const isChecked = event.target.checked;
+                            const checkboxes = memberList.querySelectorAll('input[type="checkbox"]');
+                            checkboxes.forEach(checkbox => {
+                                checkbox.checked = isChecked;
+                            });
+                        });
+                    }
+                });
+        });
+    </script>
+</body>
+</html>

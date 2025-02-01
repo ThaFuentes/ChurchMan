@@ -1,361 +1,413 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Members Directory</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            color: #fff;
-            background-image: url('{{ url_for('static', filename='images/members_directory.png') }}');
-            background-size: cover;
-            background-position: center;
-        }
-        .header {
-            background-color: #000;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 2em;
-            color: #00FFFF;
-        }
-        .back-button {
-            position: absolute;
-            left: 20px;
-            top: 20px;
-            background-color: #00FFFF;
-            color: #000;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-        .flash-message {
-            background-color: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            padding: 10px;
-            margin: 10px 0;
-            text-align: center;
-            border-radius: 5px;
-            max-width: 80%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .form-container {
-            margin: 20px;
-            padding: 20px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            max-width: 600px;
-            margin: 0 auto;
-            text-align: center;
-        }
-        .collapsible-button {
-            padding: 10px 20px;
-            background-color: #00FFFF;
-            color: #000;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            margin: 10px 0;
-            font-size: 1.2em;
-        }
-        .collapsible-content {
-            display: none;
-            margin-top: 10px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.2s ease-out;
-        }
-        .collapsible-content.active {
-            display: block;
-            max-height: 1000px; /* Large value to ensure content fits */
-        }
-        .form-container input,
-        .form-container select {
-            padding: 10px;
-            margin: 10px 0;
-            width: 100%;
-            border-radius: 5px;
-            border: 1px solid #00FFFF;
-            background-color: #222;
-            color: #fff;
-        }
-        .form-container .accepts-emails-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            margin: 10px 0;
-        }
-        .form-container .accepts-emails-container label {
-            margin-right: 10px;
-        }
-        .form-container button {
-            padding: 10px 20px;
-            background-color: #00FFFF;
-            color: #000;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-            width: 100%;
-            max-width: 200px;
-        }
-        .search-container {
-            margin: 20px;
-            text-align: center;
-        }
-        .search-container select,
-        .search-container input {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #00FFFF;
-            background-color: #222;
-            color: #fff;
-        }
-        .search-container button {
-            padding: 10px 20px;
-            margin: 10px 5px;
-            background-color: #00FFFF;
-            color: #000;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .clear-button {
-            padding: 10px 20px;
-            margin-left: 10px;
-            background-color: #FF6347;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .export-button {
-            padding: 10px 20px;
-            margin-left: 10px;
-            background-color: #008000;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        table {
-            width: 100%;
-            margin: 20px 0;
-            border-collapse: collapse;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            color: #fff;
-            border: 1px solid #00FFFF;
-        }
-        th {
-            background-color: rgba(0, 255, 255, 0.8);
-            color: #000;
-        }
-        .edit-button, .delete-button {
-            background-color: #00FFFF;
-            color: #000;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-right: 5px;
-        }
-        .delete-button {
-            background-color: #FF0000;
-        }
-    </style>
-    <script>
-        function toggleCollapsible(button, contentId) {
-            const content = document.getElementById(contentId);
-            if (content.classList.contains('active')) {
-                content.classList.remove('active');
-                content.style.maxHeight = null;
-            } else {
-                content.classList.add('active');
-                content.style.maxHeight = content.scrollHeight + "px";
-            }
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Members Directory</title>
+  <style>
+    /* Base (Desktop) Styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #fff;
+      background-image: url('{{ url_for('static', filename='images/members_directory.png') }}');
+      background-size: cover;
+      background-position: center;
+    }
+    .header {
+      background-color: #000;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2em;
+      color: #00FFFF;
+    }
+    .back-button {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      background-color: #00FFFF;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+    .flash-message {
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 10px;
+      margin: 10px auto;
+      text-align: center;
+      border-radius: 5px;
+      max-width: 80%;
+    }
+    .form-container {
+      margin: 20px auto;
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      max-width: 600px;
+      text-align: center;
+    }
+    .collapsible-button {
+      padding: 10px 20px;
+      background-color: #00FFFF;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      margin: 10px 0;
+      font-size: 1.2em;
+    }
+    .collapsible-content {
+      display: none;
+      margin-top: 10px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.2s ease-out;
+    }
+    .collapsible-content.active {
+      display: block;
+      max-height: 1000px; /* Large value to ensure content fits */
+    }
+    .form-container input,
+    .form-container select {
+      padding: 10px;
+      margin: 10px 0;
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #00FFFF;
+      background-color: #222;
+      color: #fff;
+    }
+    .form-container .accepts-emails-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin: 10px 0;
+    }
+    .form-container .accepts-emails-container label {
+      margin-right: 10px;
+    }
+    .form-container button {
+      padding: 10px 20px;
+      background-color: #00FFFF;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      width: 100%;
+      max-width: 200px;
+    }
+    .search-container {
+      margin: 20px;
+      text-align: center;
+    }
+    .search-container select,
+    .search-container input {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #00FFFF;
+      background-color: #222;
+      color: #fff;
+    }
+    .search-container button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      background-color: #00FFFF;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .clear-button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #FF6347;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .export-button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #008000;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+      background-color: rgba(0, 0, 0, 0.7);
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      color: #fff;
+      border: 1px solid #00FFFF;
+    }
+    th {
+      background-color: rgba(0, 255, 255, 0.8);
+      color: #000;
+    }
+    .edit-button, .delete-button {
+      background-color: #00FFFF;
+      color: #000;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .delete-button {
+      background-color: #FF0000;
+    }
 
-        function editMember(id, firstName, lastName, phone, email, address, username, role, acceptsEmails) {
-            toggleCollapsible(null, 'editMemberForm'); // Ensure the form is open
+    /* Mobile Specific Styles */
+    @media (max-width: 768px) {
+      .header {
+        padding: 10px;
+      }
+      .header h1 {
+        font-size: 1.5em;
+      }
+      .back-button {
+        position: static;
+        display: block;
+        width: 80%;
+        margin: 10px auto;
+        text-align: center;
+        padding: 8px;
+      }
+      .flash-message {
+        font-size: 0.9em;
+        padding: 8px;
+      }
+      .form-container {
+        margin: 10px;
+        padding: 10px;
+      }
+      .collapsible-button {
+        font-size: 1em;
+        padding: 8px 16px;
+      }
+      .form-container input,
+      .form-container select {
+        padding: 8px;
+        font-size: 0.9em;
+      }
+      .form-container button {
+        padding: 8px 16px;
+        font-size: 0.9em;
+        max-width: 150px;
+      }
+      .search-container select,
+      .search-container input {
+        padding: 8px;
+        font-size: 0.9em;
+      }
+      .search-container button,
+      .clear-button,
+      .export-button {
+        padding: 8px 16px;
+        font-size: 0.9em;
+      }
+      table, th, td {
+        font-size: 0.8em;
+        padding: 8px;
+      }
+    }
+  </style>
+  <script>
+    function toggleCollapsible(button, contentId) {
+      const content = document.getElementById(contentId);
+      if (content.classList.contains('active')) {
+        content.classList.remove('active');
+        content.style.maxHeight = null;
+      } else {
+        content.classList.add('active');
+        content.style.maxHeight = content.scrollHeight + "px";
+      }
+    }
 
-            document.querySelector('#editMemberForm input[name="id"]').value = id;
-            document.querySelector('#editMemberForm input[name="first_name"]').value = firstName;
-            document.querySelector('#editMemberForm input[name="last_name"]').value = lastName;
-            document.querySelector('#editMemberForm input[name="phone"]').value = phone;
-            document.querySelector('#editMemberForm input[name="email"]').value = email;
-            document.querySelector('#editMemberForm input[name="address"]').value = address;
-            document.querySelector('#editMemberForm input[name="username"]').value = username;
-            document.querySelector('#editMemberForm select[name="role"]').value = role;
-            document.querySelector(`#editMemberForm input[name="accepts_emails"][value="${acceptsEmails}"]`).checked = true;
+    function editMember(id, firstName, lastName, phone, email, address, username, role, acceptsEmails) {
+      toggleCollapsible(null, 'editMemberForm'); // Ensure the form is open
 
-            const deleteButton = document.querySelector('#delete-button');
-            deleteButton.style.display = 'block';
-            deleteButton.dataset.memberId = id;
-        }
+      document.querySelector('#editMemberForm input[name="id"]').value = id;
+      document.querySelector('#editMemberForm input[name="first_name"]').value = firstName;
+      document.querySelector('#editMemberForm input[name="last_name"]').value = lastName;
+      document.querySelector('#editMemberForm input[name="phone"]').value = phone;
+      document.querySelector('#editMemberForm input[name="email"]').value = email;
+      document.querySelector('#editMemberForm input[name="address"]').value = address;
+      document.querySelector('#editMemberForm input[name="username"]').value = username;
+      document.querySelector('#editMemberForm select[name="role"]').value = role;
+      document.querySelector(`#editMemberForm input[name="accepts_emails"][value="${acceptsEmails}"]`).checked = true;
 
-        function deleteMember() {
-            const memberId = document.querySelector('#delete-button').dataset.memberId;
-            if (memberId && confirm('Are you sure you want to delete this member?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/members/delete-member/${memberId}`;
-                document.body.appendChild(form);
-                form.submit();
-            } else {
-                alert("No valid member ID selected for deletion.");
-            }
-        }
-    </script>
+      const deleteButton = document.querySelector('#delete-button');
+      deleteButton.style.display = 'block';
+      deleteButton.dataset.memberId = id;
+    }
+
+    function deleteMember() {
+      const memberId = document.querySelector('#delete-button').dataset.memberId;
+      if (memberId && confirm('Are you sure you want to delete this member?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/members/delete-member/${memberId}`;
+        document.body.appendChild(form);
+        form.submit();
+      } else {
+        alert("No valid member ID selected for deletion.");
+      }
+    }
+  </script>
 </head>
 <body>
-    <div class="header">
-        <h1>Members Directory</h1>
-        <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
-    </div>
+  <div class="header">
+    <h1>Members Directory</h1>
+    <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+  </div>
 
-    <!-- Flash message display -->
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flash-message">
-                {{ messages[0] }}
-            </div>
-        {% endif %}
-    {% endwith %}
-
-    <!-- Only show form for Admins and Owners -->
-    {% if user_role in ['Admin', 'Owner'] %}
-    <div class="form-container">
-        <button class="collapsible-button" onclick="toggleCollapsible(this, 'newMemberForm')">New Member</button>
-        <div id="newMemberForm" class="collapsible-content">
-            <form method="POST" action="{{ url_for('members.members_directory') }}">
-                <input type="hidden" name="id">
-                <input type="text" name="first_name" placeholder="First Name" required>
-                <input type="text" name="last_name" placeholder="Last Name" required>
-                <input type="text" name="phone" placeholder="Phone" required>
-                <input type="text" name="address" placeholder="Address" required>
-                <input type="email" name="email" placeholder="Email" required>
-                <input type="text" name="username" placeholder="Username">
-                <input type="password" name="password" placeholder="Password">
-                <select name="role" required>
-                    <option value="Member">Member</option>
-                    <option value="Staff">Staff</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Owner">Owner</option>
-                </select>
-                <div class="accepts-emails-container">
-                    <label>Accepts Emails:</label>
-                    <label><input type="radio" name="accepts_emails" value="Yes" required> Yes</label>
-                    <label><input type="radio" name="accepts_emails" value="No" required> No</label>
-                </div>
-                <button type="submit">Save Member</button>
-            </form>
-        </div>
-
-        <button class="collapsible-button" onclick="toggleCollapsible(this, 'editMemberForm')">Edit Member</button>
-        <div id="editMemberForm" class="collapsible-content">
-            <form method="POST" action="{{ url_for('members.members_directory') }}">
-                <input type="hidden" name="id">
-                <input type="text" name="first_name" placeholder="First Name" required>
-                <input type="text" name="last_name" placeholder="Last Name" required>
-                <input type="text" name="phone" placeholder="Phone" required>
-                <input type="text" name="address" placeholder="Address" required>
-                <input type="email" name="email" placeholder="Email" required>
-                <input type="text" name="username" placeholder="Username">
-                <input type="password" name="password" placeholder="Password">
-                <select name="role" required>
-                    <option value="Member">Member</option>
-                    <option value="Staff">Staff</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Owner">Owner</option>
-                </select>
-                <div class="accepts-emails-container">
-                    <label>Accepts Emails:</label>
-                    <label><input type="radio" name="accepts_emails" value="Yes" required> Yes</label>
-                    <label><input type="radio" name="accepts_emails" value="No" required> No</label>
-                </div>
-                <button type="submit">Save Changes</button>
-                <button type="button" id="delete-button" style="display:none;" class="delete-button" onclick="deleteMember()">Delete Member</button>
-            </form>
-        </div>
-    </div>
+  <!-- Flash message display -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-message">
+        {{ messages[0] }}
+      </div>
     {% endif %}
+  {% endwith %}
 
-    <!-- Search container placed under the form -->
-    <div class="search-container">
-        <form method="GET" action="{{ url_for('members.members_directory') }}">
-            <select name="search_field">
-                <option value="all" {% if search_field == 'all' %}selected{% endif %}>Search All Fields</option>
-                <option value="first_name" {% if search_field == 'first_name' %}selected{% endif %}>First Name</option>
-                <option value="last_name" {% if search_field == 'last_name' %}selected{% endif %}>Last Name</option>
-                <option value="phone" {% if search_field == 'phone' %}selected{% endif %}>Phone</option>
-                <option value="email" {% if search_field == 'email' %}selected{% endif %}>Email</option>
-                <option value="address" {% if search_field == 'address' %}selected{% endif %}>Address</option>
-                <option value="role" {% if search_field == 'role' %}selected{% endif %}>Role</option>
-                <option value="username" {% if search_field == 'username' %}selected{% endif %}>Username</option>
-                <option value="accepts_emails" {% if search_field == 'accepts_emails' %}selected{% endif %}>Accepts Emails</option>
-            </select>
-            <input type="text" name="search_query" placeholder="Search..." value="{{ search_query }}">
-            <button type="submit">Search</button>
-            <a href="{{ url_for('members.members_directory') }}" class="clear-button">Clear</a>
-            <a href="{{ url_for('members.export_directory') }}" class="export-button">Export</a>
+  <!-- Only show form for Admins and Owners -->
+  {% if user_role in ['Admin', 'Owner'] %}
+    <div class="form-container">
+      <button class="collapsible-button" onclick="toggleCollapsible(this, 'newMemberForm')">New Member</button>
+      <div id="newMemberForm" class="collapsible-content">
+        <form method="POST" action="{{ url_for('members.members_directory') }}">
+          <input type="hidden" name="id">
+          <input type="text" name="first_name" placeholder="First Name" required>
+          <input type="text" name="last_name" placeholder="Last Name" required>
+          <input type="text" name="phone" placeholder="Phone" required>
+          <input type="text" name="address" placeholder="Address" required>
+          <input type="email" name="email" placeholder="Email" required>
+          <input type="text" name="username" placeholder="Username">
+          <input type="password" name="password" placeholder="Password">
+          <select name="role" required>
+            <option value="Member">Member</option>
+            <option value="Staff">Staff</option>
+            <option value="Admin">Admin</option>
+            <option value="Owner">Owner</option>
+          </select>
+          <div class="accepts-emails-container">
+            <label>Accepts Emails:</label>
+            <label><input type="radio" name="accepts_emails" value="Yes" required> Yes</label>
+            <label><input type="radio" name="accepts_emails" value="No" required> No</label>
+          </div>
+          <button type="submit">Save Member</button>
         </form>
-    </div>
+      </div>
 
-    <table>
-        <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Address</th>
-            <th>Role</th>
-            <th>Username</th>
-            <th>Accepts Emails</th>
-            <th>Actions</th>
-        </tr>
-        {% if members %}
-        {% for member in members %}
-        <tr>
-            <td>{{ member.first_name }}</td>
-            <td>{{ member.last_name }}</td>
-            <td>{{ member.phone }}</td>
-            <td>{{ member.email }}</td>
-            <td>{{ member.address }}</td>
-            <td>{{ member.role }}</td>
-            <td>{{ member.username }}</td>
-            <td>{{ 'Yes' if member.accepts_emails else 'No' }}</td>
-            <td>
-                <!-- Only show edit button for Admins and Owners -->
-                {% if user_role in ['Admin', 'Owner'] %}
-                <button type="button" class="edit-button" onclick="editMember('{{ member.id }}', '{{ member.first_name }}', '{{ member.last_name }}', '{{ member.phone }}', '{{ member.email }}', '{{ member.address }}', '{{ member.username }}', '{{ member.role }}', '{{ 'Yes' if member.accepts_emails else 'No' }}')">Edit</button>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-        {% else %}
-        <tr>
-            <td colspan="9" style="text-align:center;">No members found matching your search criteria.</td>
-        </tr>
-        {% endif %}
-    </table>
+      <button class="collapsible-button" onclick="toggleCollapsible(this, 'editMemberForm')">Edit Member</button>
+      <div id="editMemberForm" class="collapsible-content">
+        <form method="POST" action="{{ url_for('members.members_directory') }}">
+          <input type="hidden" name="id">
+          <input type="text" name="first_name" placeholder="First Name" required>
+          <input type="text" name="last_name" placeholder="Last Name" required>
+          <input type="text" name="phone" placeholder="Phone" required>
+          <input type="text" name="address" placeholder="Address" required>
+          <input type="email" name="email" placeholder="Email" required>
+          <input type="text" name="username" placeholder="Username">
+          <input type="password" name="password" placeholder="Password">
+          <select name="role" required>
+            <option value="Member">Member</option>
+            <option value="Staff">Staff</option>
+            <option value="Admin">Admin</option>
+            <option value="Owner">Owner</option>
+          </select>
+          <div class="accepts-emails-container">
+            <label>Accepts Emails:</label>
+            <label><input type="radio" name="accepts_emails" value="Yes" required> Yes</label>
+            <label><input type="radio" name="accepts_emails" value="No" required> No</label>
+          </div>
+          <button type="submit">Save Changes</button>
+          <button type="button" id="delete-button" style="display:none;" class="delete-button" onclick="deleteMember()">Delete Member</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Search container placed under the form -->
+  <div class="search-container">
+    <form method="GET" action="{{ url_for('members.members_directory') }}">
+      <select name="search_field">
+        <option value="all" {% if search_field == 'all' %}selected{% endif %}>Search All Fields</option>
+        <option value="first_name" {% if search_field == 'first_name' %}selected{% endif %}>First Name</option>
+        <option value="last_name" {% if search_field == 'last_name' %}selected{% endif %}>Last Name</option>
+        <option value="phone" {% if search_field == 'phone' %}selected{% endif %}>Phone</option>
+        <option value="email" {% if search_field == 'email' %}selected{% endif %}>Email</option>
+        <option value="address" {% if search_field == 'address' %}selected{% endif %}>Address</option>
+        <option value="role" {% if search_field == 'role' %}selected{% endif %}>Role</option>
+        <option value="username" {% if search_field == 'username' %}selected{% endif %}>Username</option>
+        <option value="accepts_emails" {% if search_field == 'accepts_emails' %}selected{% endif %}>Accepts Emails</option>
+      </select>
+      <input type="text" name="search_query" placeholder="Search..." value="{{ search_query }}">
+      <button type="submit">Search</button>
+      <a href="{{ url_for('members.members_directory') }}" class="clear-button">Clear</a>
+      <a href="{{ url_for('members.export_directory') }}" class="export-button">Export</a>
+    </form>
+  </div>
+
+  <table>
+    <tr>
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Phone</th>
+      <th>Email</th>
+      <th>Address</th>
+      <th>Role</th>
+      <th>Username</th>
+      <th>Accepts Emails</th>
+      <th>Actions</th>
+    </tr>
+    {% if members %}
+      {% for member in members %}
+      <tr>
+        <td>{{ member.first_name }}</td>
+        <td>{{ member.last_name }}</td>
+        <td>{{ member.phone }}</td>
+        <td>{{ member.email }}</td>
+        <td>{{ member.address }}</td>
+        <td>{{ member.role }}</td>
+        <td>{{ member.username }}</td>
+        <td>{{ 'Yes' if member.accepts_emails else 'No' }}</td>
+        <td>
+          {% if user_role in ['Admin', 'Owner'] %}
+            <button type="button" class="edit-button" onclick="editMember('{{ member.id }}', '{{ member.first_name }}', '{{ member.last_name }}', '{{ member.phone }}', '{{ member.email }}', '{{ member.address }}', '{{ member.username }}', '{{ member.role }}', '{{ 'Yes' if member.accepts_emails else 'No' }}')">Edit</button>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td colspan="9" style="text-align:center;">No members found matching your search criteria.</td>
+      </tr>
+    {% endif %}
+  </table>
 </body>
 </html>
