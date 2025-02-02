@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>View All Events</title>
   <style>
-    /* Base (Desktop) Styles */
     body {
       font-family: Arial, sans-serif;
       background-color: #000;
@@ -40,26 +39,6 @@
       color: #000;
       border-radius: 5px;
     }
-    .search-container {
-      display: flex;
-      justify-content: center;
-      margin: 20px;
-    }
-    .search-container input,
-    .search-container select {
-      padding: 10px;
-      margin-right: 10px;
-      border-radius: 5px;
-      border: 1px solid #00FFFF;
-    }
-    .search-container button {
-      background-color: #00FFFF;
-      color: #000;
-      padding: 10px 20px;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -84,109 +63,32 @@
       display: none;
       background-color: #222;
     }
-    .details-row td {
-      padding: 0;
-      border: none;
-    }
     .details-content {
       padding: 10px;
       background-color: #000;
       color: #fff;
       border-top: 1px solid #00FFFF;
     }
-    .details-content ul {
-      padding-left: 20px;
+    .potluck-section {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #333;
+      border: 1px solid #00FFFF;
     }
-    .details-content li {
-      margin-bottom: 5px;
+    .edit-form {
+      display: none;
+      margin-top: 5px;
     }
-    .event-info {
-      margin: 20px;
-      padding: 20px;
-      background-color: rgba(0, 0, 0, 0.7);
-      border-radius: 10px;
-      border: 2px solid #00FFFF;
+    .edit-form input {
+      width: 70%;
+      padding: 5px;
     }
-    .event-info h2 {
-      color: #00FFFF;
-    }
-    .event-info p {
-      margin: 10px 0;
-    }
-    .event-tree {
-      margin: 20px;
-    }
-    .event-tree h2 {
-      color: #00FFFF;
-    }
-    .event-tree ul {
-      list-style-type: none;
-      padding-left: 20px;
-    }
-    .event-tree ul ul {
-      margin-left: 20px;
-      border-left: 2px solid #00FFFF;
-      padding-left: 20px;
-    }
-    .event-tree li {
-      margin-bottom: 10px;
-    }
-    .event-tree li:hover {
-      color: #00FFFF;
+    .edit-form button {
+      padding: 5px 10px;
+      background-color: #00FFFF;
+      border: none;
+      color: #000;
       cursor: pointer;
-    }
-
-    /* Mobile Specific Styles */
-    @media (max-width: 768px) {
-      .header {
-        padding: 10px;
-      }
-      .header h1 {
-        font-size: 1.5em;
-      }
-      .menu {
-        flex-direction: column;
-        align-items: center;
-        padding: 10px 0;
-      }
-      .menu a {
-        margin: 5px 0;
-        padding: 8px 16px;
-        font-size: 0.9em;
-      }
-      .search-container {
-        flex-direction: column;
-        align-items: center;
-        margin: 10px;
-      }
-      .search-container input,
-      .search-container select {
-        margin: 5px 0;
-        padding: 8px;
-        font-size: 0.9em;
-      }
-      .search-container button {
-        padding: 8px 16px;
-        font-size: 0.9em;
-      }
-      table, th, td {
-        font-size: 0.8em;
-        padding: 8px;
-      }
-      .event-info, .event-tree {
-        margin: 10px;
-        padding: 10px;
-      }
-      .event-info h2, .event-tree h2 {
-        font-size: 1.2em;
-      }
-      .event-tree ul {
-        padding-left: 10px;
-      }
-      .event-tree ul ul {
-        margin-left: 10px;
-        padding-left: 10px;
-      }
     }
   </style>
   <script>
@@ -198,6 +100,18 @@
         detailsRow.style.display = "none";
       }
     }
+
+    function confirmDelete(eventId) {
+      if (confirm("Are you sure you want to delete this event?")) {
+        document.getElementById(`delete-event-form-${eventId}`).submit();
+      }
+    }
+
+    function confirmDeleteContribution(eventId, contributionId) {
+      if (confirm("Are you sure you want to delete this contribution?")) {
+        document.getElementById(`delete-form-${eventId}-${contributionId}`).submit();
+      }
+    }
   </script>
 </head>
 <body>
@@ -207,61 +121,82 @@
   <div class="menu">
     <a href="{{ url_for('dashboard') }}">Dashboard</a>
     <a href="{{ url_for('event.add_event') }}">Add New Event</a>
-    <a href="{{ url_for('event.events') }}" id="view-all-events-link">View All Events</a>
-    <a href="#">Export Event Records</a>
-    <a href="#">Reports</a>
-  </div>
-  <div class="event-tree">
-    <h2>Events Overview</h2>
-    <ul>
-      {% for year, year_events in events_by_year.items() %}
-      <li onclick="toggleDetails('year-{{ year }}')">{{ year }}</li>
-      <ul id="details-year-{{ year }}" class="details-row">
-        {% for event in year_events %}
-        <li onclick="toggleDetails('event-{{ event.id }}')">{{ event.event_name }}</li>
-        <ul id="details-event-{{ event.id }}" class="details-row">
-          <li>Date: {{ event.event_date }}</li>
-          <li>Time: {{ event.event_time }}</li>
-          <li>Location: {{ event.location }}</li>
-          <li>Description: {{ event.description }}</li>
-          <!-- Add more event details here -->
-        </ul>
-        {% endfor %}
-      </ul>
-      {% endfor %}
-    </ul>
   </div>
   <table id="events-table">
-    <tr>
-      <th>Event Name</th>
-      <th>Date</th>
-      <th>Location</th>
-    </tr>
-    {% for event in events %}
-    <tr class="data-row" onclick="toggleDetails('event-{{ event.id }}')">
-      <td>{{ event.event_name }}</td>
-      <td>{{ event.event_date }}</td>
-      <td>{{ event.location }}</td>
-    </tr>
-    <tr class="details-row" id="details-event-{{ event.id }}">
-      <td colspan="3" class="details-content">
-        <ul>
-          <li>Date: {{ event.event_date }}</li>
-          <li>Time: {{ event.event_time }}</li>
-          <li>Location: {{ event.location }}</li>
-          <li>Description: {{ event.description }}</li>
-          <li>Speaker/Host: {{ event.speaker_host }}</li>
-          <li>Special Guests: {{ event.special_guests }}</li>
-          <li>Theme: {{ event.theme }}</li>
-          <li>Agenda: {{ event.agenda }}</li>
-          <li>Registration Information: {{ event.registration_info }}</li>
-          <li>Cost/Fees: {{ event.cost_fees }}</li>
-          <li>Contact Information: {{ event.contact_info }}</li>
-          <!-- Add more details as needed -->
-        </ul>
-      </td>
-    </tr>
-    {% endfor %}
+    <thead>
+      <tr>
+        <th>Event Name</th>
+        <th>Date</th>
+        <th>Location</th>
+        <th>Potluck?</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for event in events %}
+      <tr class="data-row" onclick="toggleDetails('event-{{ event.id }}')">
+        <td>{{ event.event_name }}</td>
+        <td>{{ event.event_date }}</td>
+        <td>{{ event.location }}</td>
+        <td>{% if event.is_potluck|default(0) == 1 %} Yes {% else %} No {% endif %}</td>
+        <td>
+          <a href="{{ url_for('event.edit_event', event_id=event.id) }}" class="btn">Edit</a>
+          <form id="delete-event-form-{{ event.id }}" action="{{ url_for('event.delete_event', event_id=event.id) }}" method="POST" style="display:inline;">
+            <button type="button" onclick="confirmDelete('{{ event.id }}')">Delete</button>
+          </form>
+        </td>
+      </tr>
+      <tr class="details-row" id="details-event-{{ event.id }}">
+        <td colspan="5" class="details-content">
+          <ul>
+            {% for key, value in event.items() %}
+              {% if value and key not in ['id', 'is_potluck', 'potluck_contributions'] %}
+                <li>{{ key.replace('_', ' ').title() }}: {{ value }}</li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+
+          {% if event.is_potluck|default(0) == 1 %}
+          <div class="potluck-section">
+            <h3>Potluck Contributions</h3>
+            {% if event.potluck_contributions %}
+              <ul>
+                {% for contrib in event.potluck_contributions %}
+                <li>
+                  <strong>{{ contrib.first_name }} {{ contrib.last_name }}</strong>: {{ contrib.contribution }}
+                  <ul>
+                    {% for key, value in contrib.items() %}
+                      {% if value and key not in ['id', 'event_id', 'user_id', 'first_name', 'last_name', 'contribution'] %}
+                        <li>{{ key.replace('_', ' ').title() }}: {{ value }}</li>
+                      {% endif %}
+                    {% endfor %}
+                  </ul>
+                  <button onclick="showEditForm('{{ event.id }}', '{{ contrib.id }}')">Edit</button>
+
+                  <form id="delete-form-{{ event.id }}-{{ contrib.id }}" action="{{ url_for('event.delete_potluck_contribution', contribution_id=contrib.id) }}" method="POST" style="display:inline;">
+                    <button type="button" onclick="confirmDeleteContribution('{{ event.id }}', '{{ contrib.id }}')">Delete</button>
+                  </form>
+
+                  <form id="edit-form-{{ event.id }}-{{ contrib.id }}" class="edit-form" action="{{ url_for('event.edit_potluck_contribution', contribution_id=contrib.id) }}" method="POST">
+                    <input type="text" name="contribution" value="{{ contrib.contribution }}" required>
+                    <button type="submit">Update</button>
+                  </form>
+                </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p>No contributions yet.</p>
+            {% endif %}
+            <form action="{{ url_for('event.add_potluck_contribution', event_id=event.id) }}" method="POST">
+              <input type="text" name="contribution" placeholder="What are you bringing?" required>
+              <button type="submit">Add Contribution</button>
+            </form>
+          </div>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
   </table>
 </body>
 </html>

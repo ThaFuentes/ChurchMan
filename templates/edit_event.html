@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            background-image: url('{{ url_for('static', filename='images/event.png') }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #000;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            color: #00FFFF;
+        }
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: #333;
+            border-bottom: 2px solid #00FFFF;
+        }
+        .menu a {
+            text-decoration: none;
+            padding: 10px 20px;
+            background-color: #00FFFF;
+            color: #000;
+            border-radius: 5px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00FFFF;
+            border-radius: 10px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #00FFFF;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #00FFFF;
+            border-radius: 5px;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #00FFFF;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #00cccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Edit Event</h1>
+    </div>
+    <div class="menu">
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('event.events') }}">Back to Events</a>
+    </div>
+
+    <div class="container">
+        <form action="{{ url_for('event.edit_event', event_id=event.id) }}" method="POST">
+            <label for="event_name">Event Name:</label>
+            <input type="text" id="event_name" name="event_name" value="{{ event.event_name }}" required>
+
+            <label for="event_date">Date:</label>
+            <input type="date" id="event_date" name="event_date" value="{{ event.event_date }}" required>
+
+            <label for="event_time">Time:</label>
+            <input type="time" id="event_time" name="event_time" value="{{ event.event_time }}">
+
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" value="{{ event.location }}">
+
+            <label for="description">Description:</label>
+            <textarea id="description" name="description">{{ event.description }}</textarea>
+
+            <label for="speaker_host">Speaker/Host:</label>
+            <input type="text" id="speaker_host" name="speaker_host" value="{{ event.speaker_host }}">
+
+            <label for="special_guests">Special Guests:</label>
+            <input type="text" id="special_guests" name="special_guests" value="{{ event.special_guests }}">
+
+            <label for="theme">Theme:</label>
+            <input type="text" id="theme" name="theme" value="{{ event.theme }}">
+
+            <label for="agenda">Agenda:</label>
+            <textarea id="agenda" name="agenda">{{ event.agenda }}</textarea>
+
+            <label for="registration_info">Registration Info:</label>
+            <textarea id="registration_info" name="registration_info">{{ event.registration_info }}</textarea>
+
+            <label for="cost_fees">Cost/Fees:</label>
+            <input type="text" id="cost_fees" name="cost_fees" value="{{ event.cost_fees }}">
+
+            <label for="contact_info">Contact Information:</label>
+            <input type="text" id="contact_info" name="contact_info" value="{{ event.contact_info }}">
+
+            <label for="is_potluck">Is this a Potluck Event?</label>
+            <select id="is_potluck" name="is_potluck">
+                <option value="1" {% if event.is_potluck == 1 %}selected{% endif %}>Yes</option>
+                <option value="0" {% if event.is_potluck == 0 %}selected{% endif %}>No</option>
+            </select>
+
+            <button type="submit">Save Changes</button>
+        </form>
+    </div>
+</body>
+</html>
