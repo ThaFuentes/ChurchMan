@@ -8,20 +8,25 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #000;
-            color: #fff;
-            background-image: url('{{ url_for('static', filename='images/donations.png') }}');
+            color: #e0e0e0;
+            background-image: url('{{ url_for("static", filename="images/donations.png") }}');
             background-size: cover;
             background-position: center;
-            background-attachment: fixed; /* This fixes the background image in place */
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
         }
         .header {
-            background-color: #000;
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.8);
             padding: 20px;
             text-align: center;
+            border-bottom: 2px solid #00FFFF;
         }
         .header h1 {
             margin: 0;
             color: #00FFFF;
+            font-size: 2em;
         }
         .menu {
             display: flex;
@@ -31,12 +36,14 @@
             border-bottom: 2px solid #00FFFF;
         }
         .menu a {
-            color: #fff;
             text-decoration: none;
             padding: 10px 20px;
             background-color: #00FFFF;
             color: #000;
             border-radius: 5px;
+        }
+        .menu a:hover {
+            background-color: #00CCCC;
         }
         .search-container {
             display: flex;
@@ -97,23 +104,49 @@
         .details-content li {
             margin-bottom: 5px;
         }
-    </style>
-    <script>
-        function toggleDetails(name) {
-            const detailsRow = document.getElementById(`details-${name}`);
-            if (detailsRow.style.display === "none" || detailsRow.style.display === "") {
-                detailsRow.style.display = "table-row";
-            } else {
-                detailsRow.style.display = "none";
+
+        /* Mobile Specific Styles */
+        @media (max-width: 768px) {
+            .menu {
+                flex-direction: column;
+                align-items: center;
+                padding: 10px 0;
+            }
+
+            .menu a {
+                margin: 5px 0;
+                padding: 8px 16px;
+                font-size: 0.9em;
+            }
+
+            .header {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .search-container input,
+            .search-container select {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+
+            .search-container button {
+                padding: 8px 16px;
+                font-size: 0.9em;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 8px;
             }
         }
-
-        function refreshDonations() {
-            const searchTerm = document.getElementById('search-term').value;
-            const selectedYear = document.getElementById('year-select').value;
-            window.location.href = `{{ url_for('donations.view_all_donations') }}?search=${searchTerm}&year=${selectedYear}`;
-        }
-    </script>
+    </style>
 </head>
 <body>
     <div class="header">
@@ -123,7 +156,8 @@
         <a href="{{ url_for('dashboard') }}">Dashboard</a>
         <a href="{{ url_for('donations.view_all_members') }}">View All Members</a>
         <a href="{{ url_for('donations.view_all_donations') }}">View All Donations</a>
-        <a href="#">Export Donations Records</a>
+        <!-- Now links to the standalone export page -->
+        <a href="{{ url_for('donations.export_page') }}">Export Donations Records</a>
         <a href="#">Reports</a>
         <a href="#">View All Non-Member Donations</a>
         <a href="#">Add User</a>
@@ -162,5 +196,18 @@
         </tr>
         {% endfor %}
     </table>
+
+    <script>
+        function toggleDetails(name) {
+            const detailsRow = document.getElementById(`details-${name}`);
+            detailsRow.style.display = (detailsRow.style.display === "table-row") ? "none" : "table-row";
+        }
+
+        function refreshDonations() {
+            const searchTerm = document.getElementById('search-term').value;
+            const selectedYear = document.getElementById('year-select').value;
+            window.location.href = `{{ url_for('donations.view_all_donations') }}?search=${searchTerm}&year=${selectedYear}`;
+        }
+    </script>
 </body>
 </html>

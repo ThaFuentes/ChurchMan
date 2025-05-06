@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Sermon</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #e0e0e0;
+      background-image: url('{{ url_for("static", filename="images/settings_background.png") }}');
+      background-size: cover;
+      background-position: center center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Flash Messages */
+    .flash {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .flash.error {
+      background-color: #661111;
+      color: #fdd;
+    }
+    .flash.success {
+      background-color: #116611;
+      color: #dfd;
+    }
+
+    /* Header */
+    .header {
+      position: relative;
+      padding: 20px;
+      text-align: center;
+      background-color: rgba(0, 0, 0, 0.8);
+      border-bottom: 2px solid #00FFFF;
+    }
+    .header h1 {
+      margin: 0;
+      color: #00FFFF;
+      font-size: 2em;
+    }
+    .back-button {
+      position: absolute;
+      top: 20px;
+      background-color: #00FFFF;
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .header .back-to-sermons { left: 20px; }
+    .header .back-to-dash { right: 20px; }
+
+    /* Form */
+    .form-container {
+      max-width: 900px;
+      margin: 20px auto;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+    .form-row label {
+      flex: 1 0 150px;
+      margin-bottom: 5px;
+      font-size: 1.1em;
+    }
+    .form-row input,
+    .form-row textarea,
+    .form-row button {
+      flex: 2 0 300px;
+      padding: 10px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background-color: #1f1f1f;
+      color: #e0e0e0;
+    }
+    .form-row input[type="file"] {
+      padding: 6px;
+    }
+    .form-row textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    .submit-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      background-color: #00FFFF;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+    }
+    .submit-btn:hover {
+      background-color: #00e5e5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .form-row { flex-direction: column; }
+      .back-button { top: 10px; left: 10px; padding: 6px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <a href="{{ url_for('sermons.sermons') }}" class="back-button back-to-sermons">← Back to Sermons</a>
+    <h1>Add Sermon</h1>
+    <a href="{{ url_for('dashboard') }}" class="back-button back-to-dash">Back to Dashboard</a>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="flash {{ category }}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Form for Adding Sermon -->
+  <div class="form-container">
+    <form action="{{ url_for('sermons.upload_sermon') }}"
+          method="POST"
+          enctype="multipart/form-data">
+
+      <!-- Sermon Title -->
+      <div class="form-row">
+        <label for="title">Sermon Title<span style="color:#f55;">*</span></label>
+        <input type="text" id="title" name="title"
+               placeholder="Enter sermon title" required>
+      </div>
+
+      <!-- Sermon Author -->
+      <div class="form-row">
+        <label for="author">Author<span style="color:#f55;">*</span></label>
+        <input type="text" id="author" name="author"
+               placeholder="Enter author name" required>
+      </div>
+
+      <!-- Sermon Notes File -->
+      <div class="form-row">
+        <label for="sermon_notes">Sermon Notes (pdf, docx, txt)</label>
+        <input type="file" id="sermon_notes" name="sermon_notes"
+               accept=".pdf,.docx,.txt">
+      </div>
+
+      <!-- Sermon Media File -->
+      <div class="form-row">
+        <label for="sermon_file">Sermon File (mp3, mp4, jpg, png, etc.)</label>
+        <input type="file" id="sermon_file" name="sermon_file"
+               accept=".mp3,.mp4,.jpg,.png,.pdf,.docx,.txt">
+      </div>
+
+      <!-- External Link -->
+      <div class="form-row">
+        <label for="external_link">Google Drive / YouTube Link</label>
+        <input type="url" id="external_link" name="external_link"
+               placeholder="Enter link">
+      </div>
+
+      <!-- Sermon Details -->
+      <div class="form-row">
+        <label for="details">Additional Details</label>
+        <textarea id="details" name="details"
+                  placeholder="Enter any extra info"></textarea>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit-btn">Submit Sermon</button>
+    </form>
+  </div>
+
+</body>
+</html>

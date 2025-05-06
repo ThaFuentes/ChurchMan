@@ -2,161 +2,236 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Settings Dashboard</title>
   <style>
-    /* Base (Desktop) Styles */
     body {
       font-family: Arial, sans-serif;
-      background-color: #000;
-      color: #fff;
-      background-image: url('{{ url_for('static', filename='images/settings_background.png') }}');
-      background-size: cover;
-      background-position: center;
-      margin: 0;
-      padding: 0;
+      background: #000 url('{{ url_for("static", filename="images/settings_background.png") }}') center/cover fixed;
+      color: #e0e0e0;
+      margin: 0; padding: 0;
     }
     .header {
-      background-color: #000;
-      padding: 20px;
-      text-align: center;
       position: relative;
+      background: rgba(0,0,0,0.8);
+      padding: 20px; text-align:center;
+      border-bottom:2px solid #00FFFF;
     }
-    .header h1 {
-      margin: 0;
-      color: #00FFFF;
-    }
+    .header h1 { margin:0; color:#00FFFF; font-size:2em; }
     .back-button {
-      position: absolute;
-      left: 20px;
-      top: 20px;
-      background-color: #00FFFF;
-      color: #000;
-      padding: 10px 20px;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      text-decoration: none;
+      position:absolute; left:20px; top:20px;
+      background:#00FFFF; color:#000;
+      padding:8px 16px; border:none; border-radius:4px;
+      font-weight:bold; text-decoration:none;
     }
-    .container {
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 20px;
-      background-color: rgba(0, 0, 0, 0.8);
-      border-radius: 10px;
-      text-align: center;
+    .tabs { display:flex; background:rgba(0,0,0,0.7); border-bottom:1px solid #333; }
+    .tab {
+      flex:1; padding:15px; text-align:center;
+      cursor:pointer; color:#bbb; border-right:1px solid #333;
     }
-    .setting-button {
-      display: block;
-      width: 100%;
-      padding: 15px 0;
-      margin: 20px 0;
-      background-color: #00FFFF;
-      color: #000;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 1.2em;
-      text-align: center;
-      text-decoration: none;
+    .tab:last-child { border-right:none; }
+    .tab.active { background:#000; color:#00FFFF; font-weight:bold; }
+    .content {
+      max-width:900px; margin:20px auto;
+      background:rgba(0,0,0,0.8); padding:20px;
+      border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.5);
     }
-    .form-section {
-      display: none;
-      margin-top: 20px;
+    fieldset { border:1px solid #333; border-radius:5px; padding:20px; margin-bottom:20px; }
+    legend { padding:0 10px; font-weight:bold; color:#00FFFF; }
+    .form-row { display:flex; align-items:center; margin-bottom:15px; flex-wrap:wrap; }
+    .form-row label {
+      flex:1 0 200px; margin-bottom:5px; line-height:2;
     }
-    .form-section.active {
-      display: block;
+    .form-row input, .form-row select {
+      flex:2 0 300px; padding:8px;
+      border:1px solid #333; border-radius:4px;
+      background:#1f1f1f; color:#e0e0e0;
     }
-    .icon-preview {
-      max-width: 100%;
-      height: auto;
-      margin-top: 10px;
+    .btn-submit {
+      background:#00FFFF; color:#000; border:none;
+      font-weight:bold; cursor:pointer;
+      width:100%; padding:10px; margin-top:10px;
+      border-radius:4px;
     }
-
-    /* Mobile Specific Styles */
-    @media (max-width: 768px) {
-      .header {
-        padding: 10px;
-      }
-      .header h1 {
-        font-size: 1.5em;
-      }
-      .back-button {
-        position: static;
-        display: block;
-        width: 80%;
-        margin: 10px auto;
-        padding: 8px;
-        text-align: center;
-      }
-      .container {
-        margin: 20px auto;
-        padding: 15px;
-      }
-      .setting-button {
-        padding: 10px 0;
-        margin: 10px 0;
-        font-size: 1em;
-      }
-      .form-section {
-        margin-top: 15px;
-      }
+    .btn-submit:hover { background:#00e5e5; }
+    @media(max-width:768px){
+      .form-row { flex-direction:column; }
+      .form-row label, .form-row input, .form-row select { flex:1 0 auto; }
+      .back-button { position:static; margin-bottom:10px; }
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+    <a href="{{ url_for('dashboard') }}" class="back-button">Back</a>
     <h1>Settings Dashboard</h1>
   </div>
 
-  <div class="container">
-    <!-- Buttons to show forms -->
-    <button type="button" class="setting-button" onclick="showForm('exportForm')">Export Donations Folder Location</button>
-    <button type="button" class="setting-button" onclick="showForm('churchForm')">Church Settings</button>
-    <button type="button" class="setting-button">Email Settings</button>  <!-- Placeholder -->
+  <div class="tabs">
+    <div class="tab active" data-target="church">Church Info</div>
+    <div class="tab" data-target="email">Email Settings</div>
+  </div>
 
-    <!-- Export Donations Form -->
-    <form id="exportForm" class="form-section" method="POST" action="{{ url_for('settings.general_settings') }}">
-      <label for="export_location">Export Donations Folder Location:</label>
-      <input type="text" id="export_location" name="export_location" placeholder="Enter or paste the directory path" required value="{{ settings['export_location'] }}">
-      <button type="submit" class="setting-button">Save Export Location</button>
+  <div class="content">
+    <!-- Church Information -->
+    <form id="church" class="form-section" action="{{ url_for('settings.general_settings') }}" method="POST">
+      <fieldset>
+        <legend>Church Information</legend>
+        {% for field, label in [
+             ('church_name','Church Name'),
+             ('tax_status','Tax Status'),
+             ('address','Address'),
+             ('phone_number','Phone Number'),
+             ('pastor','Pastor')
+           ] %}
+        <div class="form-row">
+          <label for="{{ field }}">{{ label }}</label>
+          <input type="text" id="{{ field }}" name="{{ field }}"
+                 value="{{ settings[field] }}" required>
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn-submit">Save Church Info</button>
+      </fieldset>
     </form>
 
-    <!-- Church Settings Form -->
-    <form id="churchForm" class="form-section" method="POST" action="{{ url_for('settings.general_settings') }}" enctype="multipart/form-data">
-      <input type="text" name="church_name" placeholder="Church Name" required value="{{ settings['church_name'] }}">
-      <input type="text" name="tax_status" placeholder="Tax Status" required value="{{ settings['tax_status'] }}">
-      <input type="text" name="address" placeholder="Address" required value="{{ settings['address'] }}">
-      <input type="text" name="phone_number" placeholder="Phone Number" required value="{{ settings['phone_number'] }}">
-      <input type="text" name="pastor" placeholder="Pastor" required value="{{ settings['pastor'] }}">
+    <!-- Email Settings -->
+    <form id="email" class="form-section" action="{{ url_for('settings.general_settings') }}" method="POST" style="display:none;">
+      <fieldset>
+        <legend>Email Settings</legend>
 
-      <label for="icon_path">Upload Church Icon:</label>
-      <input type="file" name="icon_path" accept="image/*" id="icon_path">
-      <!-- New input field to display selected file name -->
-      <input type="text" id="icon_filename" name="icon_filename" placeholder="No file selected" readonly>
+        <div class="form-row">
+          <label for="email_provider">Email Provider</label>
+          <select id="email_provider" name="email_provider" required>
+            <option value="custom" {% if settings['email_provider'] == 'custom' %}selected{% endif %}>Custom</option>
+            <option value="gmail_imap" {% if settings['email_provider'] == 'gmail_imap' %}selected{% endif %}>Gmail (IMAP/SSL)</option>
+            <option value="gmail_pop3" {% if settings['email_provider'] == 'gmail_pop3' %}selected{% endif %}>Gmail (POP3/SSL)</option>
+            <option value="outlook_imap" {% if settings['email_provider'] == 'outlook_imap' %}selected{% endif %}>Outlook.com (IMAP/SSL)</option>
+            <option value="outlook_pop3" {% if settings['email_provider'] == 'outlook_pop3' %}selected{% endif %}>Outlook.com (POP3/SSL)</option>
+            <option value="yahoo_imap" {% if settings['email_provider'] == 'yahoo_imap' %}selected{% endif %}>Yahoo Mail (IMAP/SSL)</option>
+            <option value="yahoo_pop3" {% if settings['email_provider'] == 'yahoo_pop3' %}selected{% endif %}>Yahoo Mail (POP3/SSL)</option>
+            <option value="icloud_imap" {% if settings['email_provider'] == 'icloud_imap' %}selected{% endif %}>iCloud Mail (IMAP/SSL)</option>
+            <option value="aol_imap" {% if settings['email_provider'] == 'aol_imap' %}selected{% endif %}>AOL Mail (IMAP/SSL)</option>
+            <option value="zoho_imap" {% if settings['email_provider'] == 'zoho_imap' %}selected{% endif %}>Zoho Mail (IMAP/SSL)</option>
+            <option value="gmx_imap" {% if settings['email_provider'] == 'gmx_imap' %}selected{% endif %}>GMX Mail (IMAP/SSL)</option>
+            <option value="office365_imap" {% if settings['email_provider'] == 'office365_imap' %}selected{% endif %}>Office365 (IMAP/SSL)</option>
+          </select>
+        </div>
 
-      {% if settings['icon_path'] %}
-        <img src="{{ url_for('static', filename=settings['icon_path'][7:]) }}" alt="Church Icon" class="icon-preview">
-      {% endif %}
-      <button type="submit" class="setting-button">Save Church Settings</button>
+        <!-- Incoming Mail -->
+        <fieldset style="margin-bottom:20px;">
+          <legend>Incoming Mail</legend>
+          <div class="form-row">
+            <label for="incoming_protocol">Protocol</label>
+            <select id="incoming_protocol" name="incoming_protocol" required>
+              <option value="IMAP" {% if settings['incoming_protocol'] == 'IMAP' %}selected{% endif %}>IMAP</option>
+              <option value="POP3" {% if settings['incoming_protocol'] == 'POP3' %}selected{% endif %}>POP3</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="incoming_server">Server</label>
+            <input type="text" id="incoming_server" name="incoming_server"
+                   value="{{ settings['incoming_server'] }}" required>
+          </div>
+          <div class="form-row">
+            <label for="incoming_port">Port</label>
+            <input type="number" id="incoming_port" name="incoming_port"
+                   value="{{ settings['incoming_port'] }}" required>
+          </div>
+          <div class="form-row">
+            <label for="incoming_encryption">Encryption</label>
+            <select id="incoming_encryption" name="incoming_encryption" required>
+              <option value="SSL" {% if settings['incoming_encryption'] == 'SSL' %}selected{% endif %}>SSL</option>
+              <option value="TLS" {% if settings['incoming_encryption'] == 'TLS' %}selected{% endif %}>TLS</option>
+              <option value="None" {% if settings['incoming_encryption'] == 'None' %}selected{% endif %}>None</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="incoming_username">Username</label>
+            <input type="text" id="incoming_username" name="incoming_username"
+                   value="{{ settings['incoming_username'] }}">
+          </div>
+          <div class="form-row">
+            <label for="incoming_password">Password</label>
+            <input type="password" id="incoming_password" name="incoming_password"
+                   value="Password Found">
+          </div>
+        </fieldset>
+
+        <!-- Outgoing Mail -->
+        <fieldset>
+          <legend>Outgoing Mail</legend>
+          <div class="form-row">
+            <label for="outgoing_server">SMTP Server</label>
+            <input type="text" id="outgoing_server" name="outgoing_server"
+                   value="{{ settings['outgoing_server'] }}" required>
+          </div>
+          <div class="form-row">
+            <label for="outgoing_port">Port</label>
+            <input type="number" id="outgoing_port" name="outgoing_port"
+                   value="{{ settings['outgoing_port'] }}" required>
+          </div>
+          <div class="form-row">
+            <label for="outgoing_encryption">Encryption</label>
+            <select id="outgoing_encryption" name="outgoing_encryption" required>
+              <option value="SSL" {% if settings['outgoing_encryption'] == 'SSL' %}selected{% endif %}>SSL</option>
+              <option value="TLS" {% if settings['outgoing_encryption'] == 'TLS' %}selected{% endif %}>TLS</option>
+              <option value="None" {% if settings['outgoing_encryption'] == 'None' %}selected{% endif %}>None</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="outgoing_username">Username</label>
+            <input type="text" id="outgoing_username" name="outgoing_username"
+                   value="{{ settings['outgoing_username'] }}">
+          </div>
+          <div class="form-row">
+            <label for="outgoing_password">Password</label>
+            <input type="password" id="outgoing_password" name="outgoing_password"
+                   value="Password Found">
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn-submit">Save Email Settings</button>
+      </fieldset>
     </form>
   </div>
 
   <script>
-    function showForm(formId) {
-      // Hide all forms
-      document.querySelectorAll('.form-section').forEach(function(form) {
-        form.classList.remove('active');
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.form-section');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        sections.forEach(s => s.style.display = 'none');
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).style.display = 'block';
       });
-      // Show the selected form
-      document.getElementById(formId).classList.add('active');
-    }
+    });
+    // Show Church Info by default
+    document.getElementById('church').style.display = 'block';
 
-    document.getElementById('icon_path').addEventListener('change', function() {
-      // Display the selected file name in the input field
-      const fileName = this.files[0] ? this.files[0].name : 'No file selected';
-      document.getElementById('icon_filename').value = fileName;
+    // Provider presets
+    document.getElementById('email_provider').addEventListener('change', function() {
+      const p = this.value;
+      const cfg = {
+        gmail_imap:      { proto:'IMAP', server:'imap.gmail.com',    port:993,  enc:'SSL',
+                          smtpServer:'smtp.gmail.com', smtpPort:587, smtpEnc:'TLS' },
+        gmail_pop3:      { proto:'POP3',server:'pop.gmail.com',       port:995,  enc:'SSL',
+                          smtpServer:'smtp.gmail.com', smtpPort:587, smtpEnc:'TLS' },
+        // Add more providers as necessary...
+      };
+
+      if (cfg[p]) {
+        const c = cfg[p];
+        document.getElementById('incoming_protocol').value    = c.proto;
+        document.getElementById('incoming_server').value      = c.server;
+        document.getElementById('incoming_port').value        = c.port;
+        document.getElementById('incoming_encryption').value  = c.enc;
+        document.getElementById('outgoing_server').value      = c.smtpServer;
+        document.getElementById('outgoing_port').value        = c.smtpPort;
+        document.getElementById('outgoing_encryption').value  = c.smtpEnc;
+      }
+      // 'custom' leaves existing values
     });
   </script>
 </body>

@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Event</title>
     <style>
+        /* Base (Desktop) Styles */
         body {
             font-family: Arial, sans-serif;
             background-color: #000;
-            color: #fff;
+            color: #e0e0e0;
             background-image: url('{{ url_for('static', filename='images/event.png') }}');
             background-size: cover;
             background-position: center;
@@ -16,15 +17,21 @@
             margin: 0;
             padding: 0;
         }
+
         .header {
-            background-color: #000;
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.8);
             padding: 20px;
             text-align: center;
+            border-bottom: 2px solid #00FFFF;
         }
+
         .header h1 {
             margin: 0;
+            font-size: 2em;
             color: #00FFFF;
         }
+
         .menu {
             display: flex;
             justify-content: space-around;
@@ -32,6 +39,7 @@
             background-color: #333;
             border-bottom: 2px solid #00FFFF;
         }
+
         .menu a {
             text-decoration: none;
             padding: 10px 20px;
@@ -39,6 +47,7 @@
             color: #000;
             border-radius: 5px;
         }
+
         .container {
             max-width: 600px;
             margin: 30px auto;
@@ -47,11 +56,13 @@
             border: 2px solid #00FFFF;
             border-radius: 10px;
         }
+
         label {
             display: block;
             margin: 10px 0 5px;
             color: #00FFFF;
         }
+
         input, textarea, select {
             width: 100%;
             padding: 8px;
@@ -60,6 +71,7 @@
             border: 1px solid #00FFFF;
             border-radius: 5px;
         }
+
         button {
             margin-top: 15px;
             padding: 10px;
@@ -71,8 +83,47 @@
             font-size: 16px;
             border-radius: 5px;
         }
+
         button:hover {
             background-color: #00cccc;
+        }
+
+        /* Mobile Specific Styles */
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .menu {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .container input,
+            .container textarea,
+            .container select {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+
+            .container button {
+                padding: 8px 16px;
+                font-size: 0.9em;
+                max-width: 150px;
+            }
+
+            label {
+                font-size: 0.9em;
+            }
         }
     </style>
 </head>

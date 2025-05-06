@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Dream</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #e0e0e0;
+      background-image: url('{{ url_for("static", filename="images/settings_background.png") }}');
+      background-size: cover;
+      background-position: center center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Flash Messages */
+    .flash {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .flash.error   { background-color: #661111; color: #fdd; }
+    .flash.success { background-color: #116611; color: #dfd; }
+
+    /* Header */
+    .header {
+      position: relative;
+      padding: 20px;
+      text-align: center;
+      background-color: rgba(0, 0, 0, 0.8);
+      border-bottom: 2px solid #00FFFF;
+    }
+    .header h1 {
+      margin: 0;
+      color: #00FFFF;
+      font-size: 2em;
+    }
+    .header .back-button {
+      position: absolute;
+      top: 20px;
+      background-color: #00FFFF;
+      color: #000;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.9em;
+      text-decoration: none;
+    }
+    .header .back-button.left { left: 20px; }
+    .header .back-button.right { right: 20px; }
+
+    /* Form Container */
+    .form-container {
+      max-width: 600px;
+      margin: 30px auto;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #00FFFF;
+    }
+    .form-container label {
+      display: block;
+      margin-bottom: 8px;
+      color: #00FFFF;
+      font-weight: bold;
+    }
+    .form-container input[type="text"],
+    .form-container textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #00FFFF;
+      border-radius: 4px;
+      background-color: #111;
+      color: #e0e0e0;
+      font-size: 1em;
+    }
+    .form-container textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    .form-container button {
+      background-color: #00FFFF;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .form-container button:hover {
+      background-color: #00e5e5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <a href="{{ url_for('dreams.dreams') }}" class="back-button left">Back To Dreams</a>
+    <h1>Submit Dream</h1>
+    <a href="{{ url_for('dashboard') }}" class="back-button right">Back To Dashboard</a>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="flash {{ category }}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Submission Form -->
+  <div class="form-container">
+    <form method="POST" action="{{ url_for('dreams.submit_dream') }}">
+      <label for="title">Title</label>
+      <input
+        type="text"
+        id="title"
+        name="title"
+        placeholder="Enter your dream title"
+        required
+      />
+
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        name="description"
+        placeholder="Describe your dream or vision"
+        required
+      ></textarea>
+
+      <button type="submit">Submit Dream</button>
+    </form>
+  </div>
+
+</body>
+</html>

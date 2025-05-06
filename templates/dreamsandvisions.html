@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dreams & Visions</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #e0e0e0;
+      background-image: url('{{ url_for("static", filename="images/event2.png") }}');
+      background-size: cover; /* Ensures the background covers the entire body */
+      background-position: center center; /* Centers the background */
+      background-attachment: fixed; /* Keeps the background fixed during scrolling */
+      margin: 0;
+      padding: 0;
+    }
+    .flash {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .flash.error { background-color: #661111; color: #fdd; }
+    .flash.success { background-color: #116611; color: #dfd; }
+    .header {
+      position: relative;
+      padding: 20px;
+      text-align: center;
+      background: rgba(0,0,0,0.8);
+      border-bottom: 2px solid #00FFFF;
+    }
+    .header h1 { margin: 0; color: #00FFFF; font-size: 2em; }
+    .header a {
+      position: absolute; top: 20px;
+      background: #00FFFF; color: #000;
+      padding: 8px 16px; border-radius: 4px;
+      font-weight: bold; text-decoration: none;
+    }
+    .back-button { left: 20px; }
+    .add-button { right: 20px; }
+    .search-container {
+      padding: 10px 20px;
+      text-align: center;
+      background: rgba(0,0,0,0.7);
+      border-bottom: 1px solid #00FFFF;
+    }
+    #searchBox {
+      width: 100%; max-width: 600px;
+      padding: 12px 16px;
+      border: 1px solid #00FFFF;
+      border-radius: 4px;
+      background: #000; color: #e0e0e0;
+      font-size: 1.1em;
+    }
+    .dreams-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px auto;
+      max-width: 900px;
+    }
+    .dreams-list li {
+      background: rgba(0,0,0,0.8);
+      margin-bottom: 20px;
+      border: 1px solid #00FFFF;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .dream-header {
+      padding: 20px;
+      cursor: pointer;
+      background: #001;
+      color: #00FFFF;
+    }
+    .dream-header h3 { margin: 0; font-size: 1.5em; }
+    .dream-header small {
+      font-size: 0.9em;
+      color: #888;
+      margin-left: 8px;
+    }
+    .dream-body {
+      display: none;
+      padding: 20px;
+      background: rgba(0,0,0,0.9);
+    }
+    .dream-body p { margin: 8px 0; }
+    .notes-content {
+      background: #111;
+      color: #eee;
+      padding: 15px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border: 1px solid #00FFFF;
+    }
+    /* Dream-level actions */
+    .dream-actions {
+      margin: 16px 0;
+      padding: 0 20px;
+      text-align: right;
+      position: static;
+    }
+    .dream-actions .btn-small { margin-left: 8px; }
+    .comments-section {
+      background: #111;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #00FFFF;
+      margin-top: 20px;
+    }
+    .comments-section h4 { margin-top: 0; color: #00FFFF; }
+    .comment {
+      background: #222;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .comment-author { font-weight: bold; color: #0ff; }
+    .comment-date {
+      font-size: 0.8em;
+      color: #888;
+      margin-left: 8px;
+    }
+    .comment-text { margin: 8px 0; }
+    .comment-actions { position: absolute; top: 12px; right: 12px; }
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 0.8em;
+      border-radius: 4px;
+      text-decoration: none;
+      margin-left: 4px;
+      color: #000;
+    }
+    .btn-edit-small { background: #0af; }
+    .btn-delete-small { background: #f44; border: none; cursor: pointer; }
+    .add-comment textarea,
+    .edit-comment textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #00FFFF;
+      border-radius: 4px;
+      background: #000;
+      color: #e0e0e0;
+      margin-bottom: 8px;
+    }
+    .add-comment button,
+    .edit-comment button {
+      background: #0af;
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .dream-header h3 { font-size: 1.2em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="{{ url_for('dashboard') }}" class="back-button">Back To Dashboard</a>
+    <h1>Dreams & Visions</h1>
+    <a href="{{ url_for('dreams.submit_dream') }}" class="add-button">+ Add Dream</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="flash {{ category }}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="search-container">
+    <input id="searchBox" placeholder="Search dreams..." />
+  </div>
+
+  <ul class="dreams-list">
+    {% for d in dream_data %}
+      <li>
+        <div class="dream-header" onclick="toggleDetails({{ d.id }})">
+          <h3>{{ d.title }}</h3>
+          <small>by {{ d.poster_username or 'Unknown' }} on {{ d.date_posted }}</small>
+        </div>
+        <div id="body-{{ d.id }}" class="dream-body">
+          <p>{{ d.description }}</p>
+          {% if d.notes %}
+            <div class="notes-content">{{ d.notes }}</div>
+          {% endif %}
+
+          <div class="dream-actions">
+            {% set role = session.get('role') %}
+            {% if session.user_id == d.user_id or role == 'admin' %}
+              <a href="{{ url_for('dreams.edit_dream', dream_id=d.id) }}" class="btn-small btn-edit-small">Edit Dream</a>
+              <form action="{{ url_for('dreams.delete_dream', dream_id=d.id) }}" method="POST" style="display:inline;">
+                <button class="btn-small btn-delete-small" onclick="return confirm('Delete this dream?');">Delete Dream</button>
+              </form>
+            {% endif %}
+          </div>
+
+          <div class="comments-section">
+            <h4>Comments ({{ d.comments|length }})</h4>
+            {% for c in d.comments %}
+              <div class="comment" id="comment-{{ c.id }}">
+                <span class="comment-author">{{ c.commenter_username }}</span>
+                <span class="comment-date">{{ c.date_posted }}</span>
+                <div id="text-{{ c.id }}" class="comment-text">{{ c.comment }}</div>
+
+                <div id="edit-form-{{ c.id }}" class="edit-comment" style="display:none;">
+                  <form action="{{ url_for('dreams.update_comment', dream_id=d.id, comment_id=c.id) }}" method="POST">
+                    <textarea name="comment">{{ c.comment }}</textarea>
+                    <button type="submit">Save</button>
+                    <button type="button" onclick="toggleEdit({{ c.id }})">Cancel</button>
+                  </form>
+                </div>
+
+                <div class="comment-actions">
+                  {% if session.user_id == c.user_id or role == 'admin' %}
+                    <a href="javascript:void(0)" onclick="toggleEdit({{ c.id }})" class="btn-small btn-edit-small">Edit</a>
+                    <form action="{{ url_for('dreams.delete_comment', dream_id=d.id, comment_id=c.id) }}" method="POST" style="display:inline;">
+                      <button class="btn-small btn-delete-small" onclick="return confirm('Delete this comment?');">Delete</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            {% else %}
+              <p style="color:#888;">No comments yet.</p>
+            {% endfor %}
+
+            <form class="add-comment" action="{{ url_for('dreams.dreams', q=search_query) }}" method="POST">
+              <textarea name="comment" required placeholder="Write a comment..."></textarea>
+              <input type="hidden" name="dream_id" value="{{ d.id }}">
+              <button type="submit">Add Comment</button>
+            </form>
+          </div>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <script>
+    function toggleDetails(id) {
+      const body = document.getElementById(`body-${id}`);
+      body.style.display = body.style.display === 'block' ? 'none' : 'block';
+    }
+    function toggleEdit(id) {
+      const text = document.getElementById(`text-${id}`);
+      const form = document.getElementById(`edit-form-${id}`);
+      if (form.style.display === 'none') {
+        text.style.display = 'none';
+        form.style.display = 'block';
+      } else {
+        form.style.display = 'none';
+        text.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

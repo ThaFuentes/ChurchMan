@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #e0e0e0;
+      background-image: url('{{ url_for("static", filename="images/profile_background.png") }}');
+      background-size: cover;
+      background-position: center center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      position: relative;
+      background-color: rgba(0,0,0,0.8);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid #00FFFF;
+    }
+
+    .header h1 {
+      margin: 0;
+      color: #00FFFF;
+      font-size: 2em;
+    }
+
+    .back-button {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      background-color: #00FFFF;
+      color: #000;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+
+    .tabs {
+      display: flex;
+      background-color: rgba(0,0,0,0.7);
+      border-bottom: 1px solid #333;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      color: #bbb;
+      border-right: 1px solid #333;
+    }
+
+    .tab:last-child { border-right: none; }
+    .tab.active {
+      background-color: #000;
+      color: #00FFFF;
+      font-weight: bold;
+    }
+
+    .content {
+      max-width: 900px;
+      margin: 20px auto;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    fieldset {
+      border: 1px solid #333;
+      border-radius: 5px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    legend {
+      padding: 0 10px;
+      font-weight: bold;
+      color: #00FFFF;
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .form-row label {
+      flex: 1 0 200px;
+      margin-bottom: 5px;
+      line-height: 2;
+    }
+
+    .form-row input,
+    .form-row select,
+    .form-row button {
+      flex: 2 0 300px;
+      padding: 8px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background-color: #1f1f1f;
+      color: #e0e0e0;
+    }
+
+    .form-row input[type="file"] {
+      padding: 4px;
+    }
+
+    .form-row input:focus,
+    .form-row select:focus {
+      outline: none;
+      border-color: #00FFFF;
+    }
+
+    .btn-submit {
+      background-color: #00FFFF;
+      color: #000;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      background-color: #00e5e5;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: rgba(0,0,0,0.6);
+    }
+
+    .data-table th, .data-table td {
+      padding: 10px;
+      border: 1px solid #00FFFF;
+      color: #fff;
+    }
+
+    .data-table th {
+      background-color: #00FFFF;
+      color: #000;
+    }
+
+    .action-btn {
+      background: none;
+      border: none;
+      color: #00FFFF;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 0.95em;
+    }
+
+    .action-btn:hover {
+      color: #0ff;
+    }
+
+    #member-search {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #00FFFF;
+      background-color: #333;
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .form-row { flex-direction: column; }
+      .form-row label, .form-row input, .form-row select { flex: 1 0 auto; }
+      .back-button { position: static; margin-bottom: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+    <h1>User Profile</h1>
+  </div>
+  <div class="tabs">
+    <div class="tab active" data-target="profile">Profile</div>
+    <div class="tab" data-target="family">Family</div>
+  </div>
+
+  <div class="content">
+    <!-- Profile Form -->
+    <form id="profile" class="form-section active" action="{{ url_for('profile.profile') }}" method="POST">
+      <fieldset>
+        <legend>Update Profile</legend>
+        <div class="form-row">
+          <label for="first_name">First Name</label>
+          <input id="first_name" name="first_name" type="text" value="{{ user.first_name }}" required>
+        </div>
+
+        <div class="form-row">
+          <label for="last_name">Last Name</label>
+          <input id="last_name" name="last_name" type="text" value="{{ user.last_name }}" required>
+        </div>
+
+        <div class="form-row">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" value="{{ user.email }}" required>
+        </div>
+
+        <div class="form-row">
+          <label for="phone">Phone</label>
+          <input id="phone" name="phone" type="text" value="{{ user.phone }}" required>
+        </div>
+
+        <div class="form-row">
+          <label for="address">Address</label>
+          <input id="address" name="address" type="text" value="{{ user.address }}" required>
+        </div>
+
+        <div class="form-row">
+          <label for="birthday">Birthday</label>
+          <input id="birthday" name="birthday" type="date" value="{{ user.birthday or '' }}">
+        </div>
+
+        <div class="form-row">
+          <label for="show_birthday">
+            <input id="show_birthday" name="show_birthday" type="checkbox" value="1" {% if user.show_birthday %}checked{% endif %}>
+            Show my birthday to others
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label for="old_password">Old Password (optional)</label>
+          <input id="old_password" name="old_password" type="password" placeholder="Enter your old password">
+        </div>
+
+        <div class="form-row">
+          <label for="new_password">New Password (optional)</label>
+          <input id="new_password" name="new_password" type="password" placeholder="Enter a new password">
+        </div>
+
+        <div class="form-row">
+          <label for="confirm_password">Confirm New Password</label>
+          <input id="confirm_password" name="confirm_password" type="password" placeholder="Confirm your new password">
+        </div>
+
+        <button type="submit" class="btn-submit">Update Profile</button>
+      </fieldset>
+    </form>
+
+    <!-- Pending Family Requests -->
+    <div class="section">
+      <h2>Pending Family Requests</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Relationship</th>
+            <th>Status / Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set any = false %}
+          {% for req in pending_requests %}
+            <tr>
+              <td>{{ req.name }}</td>
+              <td>{{ req.relation_type }}</td>
+              <td>
+                <form action="{{ url_for('profile.approve_family', fr_id=req.id) }}" method="POST" style="display:inline;">
+                  <button class="action-btn" type="submit">Accept</button>
+                </form>
+                <form action="{{ url_for('profile.reject_family', fr_id=req.id) }}" method="POST" style="display:inline;">
+                  <button class="action-btn" type="submit">Decline</button>
+                </form>
+              </td>
+            </tr>
+            {% set any = true %}
+          {% endfor %}
+          {% if not any %}
+            <tr><td colspan="3">No pending requests.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Confirmed Family -->
+    <div class="section">
+      <h2>My Family</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Relationship</th>
+            <th>Remove</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fm in family %}
+            <tr>
+              <td>{{ fm.name }}</td>
+              <td>{{ fm.relationship }}</td>
+              <td>
+                <form action="{{ url_for('profile.remove_family', fr_id=fm.id) }}" method="POST">
+                  <button class="action-btn" type="submit">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="3">You have no family members.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Suggested Family Members -->
+    <div class="section">
+      <h2>Suggested Family Members</h2>
+      <input id="member-search" placeholder="Type to filter…" />
+      <table class="data-table" id="suggestions-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th colspan="2">Add Relationship</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if suggested_users %}
+            {% for u in suggested_users %}
+              <tr>
+                <td class="user-name">{{ u.first_name }} {{ u.last_name }}</td>
+                <td colspan="2">
+                  <form method="POST" action="{{ url_for('profile.add_family') }}">
+                    <input type="hidden" name="relative_user_id" value="{{ u.id }}">
+                    <input name="relationship" type="text" placeholder="e.g. Sister" required>
+                    <button class="action-btn" type="submit">Add</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="3">No suggestions found.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    window.addEventListener('load', () => {
+      const input = document.getElementById('member-search');
+      if (input) input.value = '';
+    });
+
+    document.getElementById('member-search').addEventListener('input', e => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('#suggestions-table tbody tr').forEach(row => {
+        const cell = row.querySelector('.user-name');
+        row.style.display = cell && cell.textContent.toLowerCase().includes(term) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>

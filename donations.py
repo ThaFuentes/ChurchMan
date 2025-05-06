@@ -70,7 +70,7 @@ def add_donation():
     cursor = conn.cursor()
 
     # Fetch church information
-    cursor.execute('SELECT church_name, address, phone_number, pastor, tax_status FROM church_info LIMIT 1')
+    cursor.execute('SELECT church_name, address, phone_number, pastor, tax_status FROM settings LIMIT 1')
     church_info = cursor.fetchone()
 
     if request.method == 'POST':
@@ -552,3 +552,25 @@ def get_donating_members():
     conn.close()
 
     return jsonify(members_by_year)
+
+
+@donations_bp.route('/export')
+@role_required(['Admin', 'Owner'])
+def export_page():
+    """Standalone Export Donations page."""
+    return render_template('export_donations.html')
+
+
+@donations_bp.route('/download_donations_report/<filename>', methods=['GET'])
+@role_required(['Admin', 'Owner'])
+def download_donations_report(filename):
+    # Define the directory where the reports are saved
+    report_directory = os.path.join(os.path.expanduser('~'), 'Donations')  # or wherever your reports are saved
+
+    # Ensure the file exists
+    file_path = os.path.join(report_directory, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(report_directory, filename, as_attachment=True)
+    else:
+        flash('Error: File not found.', 'danger')
+        return redirect(url_for('donations.donations_dashboard'))

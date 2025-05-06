@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, abort, jsonify
 import sqlite3
 from collections import defaultdict
 from datetime import datetime
@@ -53,7 +53,7 @@ def role_required(required_roles):
 
 # Route to display all events
 @event_bp.route('/')
-@role_required(['Staff', 'Admin', 'Owner', 'Members'])
+@role_required(['Staff', 'Admin', 'Owner', 'Member'])
 def events():
     # Open a connection to fetch events.
     conn = get_db_connection()
@@ -292,7 +292,7 @@ def delete_event(event_id):
 
 
 @event_bp.route('/potluck/add/<int:event_id>', methods=['POST'])
-@role_required(['Owner', 'Admin', 'Staff', 'Members'])
+@role_required(['Owner', 'Admin', 'Staff', 'Member'])
 def add_potluck_contribution(event_id):
     contribution = request.form.get('contribution')
     if not contribution:
@@ -330,7 +330,7 @@ def add_potluck_contribution(event_id):
 
 
 @event_bp.route('/potluck/edit/<int:contribution_id>', methods=['GET', 'POST'])
-@role_required(['Owner', 'Admin', 'Staff', 'Members'])
+@role_required(['Owner', 'Admin', 'Staff', 'Member'])
 def edit_potluck_contribution(contribution_id):
     conn = get_db_connection()
     contribution = conn.execute(
@@ -372,7 +372,7 @@ def edit_potluck_contribution(contribution_id):
 
 
 @event_bp.route('/potluck/delete/<int:contribution_id>', methods=['POST'])
-@role_required(['Owner', 'Admin', 'Staff', 'Members'])
+@role_required(['Owner', 'Admin', 'Staff', 'Member'])
 def delete_potluck_contribution(contribution_id):
     conn = get_db_connection()
     contribution = conn.execute(
@@ -402,7 +402,7 @@ def delete_potluck_contribution(contribution_id):
 
 
 @event_bp.route('/view_events')
-@role_required(['Owner', 'Admin', 'Staff', 'Members'])
+@role_required(['Owner', 'Admin', 'Staff', 'Member'])
 def view_events():
     conn = get_db_connection()
     try:
@@ -425,3 +425,51 @@ def view_events():
     events_by_year = dict(sorted(events_by_year.items(), reverse=True))
 
     return render_template('view_events.html', events=events, events_by_year=events_by_year)
+
+
+@event_bp.route('/search')
+@role_required(['Staff', 'Admin', 'Owner', 'Member'])
+def search_events():
+    q = request.args.get('q', '').strip()
+    is_potluck = request.args.get('is_potluck', None)
+    date_filter = request.args.get('date_filter', None)  # New filter for date-based queries
+
+    # Open DB connection
+    conn = get_db_connection()
+    try:
+        like_q = f'%{q}%'  # For LIKE queries
+        query = '''
+            SELECT * FROM events
+            WHERE (event_name LIKE ? OR location LIKE ? OR description LIKE ?
+            OR speaker_host LIKE ? OR special_guests LIKE ? OR theme LIKE ? OR agenda LIKE ?)
+        '''
+
+        params = [like_q] * 7  # Parameters for LIKE queries
+
+        # Add potluck filter if specified
+        if is_potluck is not None:
+            query += " AND is_potluck = ?"
+            params.append(is_potluck)
+
+        # Apply the date filter (Upcoming, Today, Past)
+        if date_filter == 'upcoming':
+            query += " AND event_date > ?"
+            params.append(datetime.now().strftime('%Y-%m-%d'))  # Compare with the current date
+        elif date_filter == 'today':
+            query += " AND event_date = ?"
+            params.append(datetime.now().strftime('%Y-%m-%d'))  # Compare with today's date
+        elif date_filter == 'past':
+            query += " AND event_date < ?"
+            params.append(datetime.now().strftime('%Y-%m-%d'))  # Compare with the current date
+
+        # Execute the query with the parameters
+        rows = conn.execute(query, tuple(params)).fetchall()
+
+        # Convert rows to dictionary format
+        events = [dict(row) for row in rows]
+    except sqlite3.Error as e:
+        events = []
+    finally:
+        conn.close()
+
+    return jsonify(events)

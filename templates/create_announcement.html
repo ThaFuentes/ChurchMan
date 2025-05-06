@@ -1,0 +1,161 @@
+<!-- templates/create_announcement.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Create Announcement</title>
+  <style>
+    /* Base Styles */
+    body {
+      margin: 0; padding: 0;
+      font-family: Arial, sans-serif;
+      background: #000 url('{{ url_for("static",filename="images/settings_background.png") }}') center/cover fixed;
+      color: #e0e0e0;
+    }
+    a { text-decoration: none; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      border-bottom: 2px solid #00FFFF;
+    }
+    .header h1 {
+      margin: 0;
+      color: #00FFFF;
+      font-size: 2em;
+      flex: 1;
+      text-align: center;
+    }
+    .header .btn {
+      background: #00FFFF;
+      color: #000;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      transition: transform .2s;
+    }
+    .header .btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* Content */
+    .content {
+      max-width: 800px;
+      margin: 30px auto;
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Flash message */
+    .flash {
+      text-align: center;
+      color: #00FFFF;
+      margin-bottom: 20px;
+    }
+
+    /* Form */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .form-row label {
+      flex: 1 0 150px;
+      color: #00FFFF;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .form-row input,
+    .form-row textarea {
+      flex: 2 0 300px;
+      padding: 8px;
+      background: #1f1f1f;
+      color: #e0e0e0;
+      border: 1px solid #333;
+      border-radius: 4px;
+      transition: border-color .3s;
+    }
+    .form-row input:focus,
+    .form-row textarea:focus {
+      border-color: #00FFFF;
+      outline: none;
+    }
+
+    /* Submit */
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: #00FFFF;
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background .3s;
+      margin-top: 10px;
+    }
+    .btn-submit:hover {
+      background: #00e5e5;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .header h1 { font-size: 1.5em; }
+      .form-row { flex-direction: column; }
+      .form-row label { flex: none; }
+      .form-row input, .form-row textarea { flex: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <a href="{{ url_for('announcements.view_announcements') }}" class="btn">← All Announcements</a>
+    <h1>Create Announcement</h1>
+    <!-- Fixed here: point to the correct dashboard endpoint -->
+    <a href="{{ url_for('dashboard') }}" class="btn">Dashboard →</a>
+  </div>
+
+  <div class="content">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash">{{ messages[0] }}</div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <div class="form-row">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required/>
+      </div>
+      <div class="form-row">
+        <label for="content">Content:</label>
+        <textarea id="content" name="content" rows="5" required></textarea>
+      </div>
+      <div class="form-row">
+        <label for="effective_date">Effective Date:</label>
+        <input type="date" id="effective_date" name="effective_date"/>
+      </div>
+      <div class="form-row">
+        <label for="expiration_date">Expiration Date:</label>
+        <input type="date" id="expiration_date" name="expiration_date"/>
+      </div>
+      <div class="form-row">
+        <label><input type="checkbox" name="is_active" checked> Active</label>
+        <label><input type="checkbox" name="comments_enabled" checked> Comments Enabled</label>
+      </div>
+      <button type="submit" class="btn-submit">Save Announcement</button>
+    </form>
+  </div>
+
+</body>
+</html>

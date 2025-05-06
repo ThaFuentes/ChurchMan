@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Post a Prophecy</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #e0e0e0;
+      background-image: url('{{ url_for("static", filename="images/settings_background.png") }}');
+      background-size: cover;
+      background-position: center center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Header */
+    .header {
+      position: relative;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid #00FFFF;
+    }
+
+    .header h1 {
+      margin: 0;
+      color: #00FFFF;
+      font-size: 2em;
+    }
+
+    .back-button {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      background-color: #00FFFF;
+      color: #000;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-bottom: 1px solid #333;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      color: #bbb;
+      border-right: 1px solid #333;
+    }
+
+    .tab:last-child { border-right: none; }
+
+    .tab.active {
+      background-color: #000;
+      color: #00FFFF;
+      font-weight: bold;
+    }
+
+    .add-link {
+      color: #00FFFF;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    /* Form Content */
+    .content {
+      max-width: 600px;
+      margin: 30px auto;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .content label {
+      display: block;
+      margin-bottom: 8px;
+      color: #00FFFF;
+      font-weight: bold;
+    }
+
+    .content input[type="text"],
+    .content textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #00FFFF;
+      border-radius: 4px;
+      background-color: #111;
+      color: #fff;
+      font-size: 1em;
+    }
+
+    .content button {
+      padding: 10px 20px;
+      background-color: #00FFFF;
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    .content button:hover {
+      background-color: #00e5e5;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <a href="{{ url_for('prophecy.list_prophecies') }}" class="back-button">← Back to Prophecies</a>
+    <h1>Post a Prophecy</h1>
+  </div>
+
+  <div class="tabs">
+    <div class="tab"><a href="{{ url_for('prophecy.list_prophecies') }}" class="add-link">All Prophecies</a></div>
+    <div class="tab active"><a href="{{ url_for('prophecy.add_prophecy') }}" class="add-link">Post a Prophecy</a></div>
+  </div>
+
+  <div class="content">
+    <form action="{{ url_for('prophecy.add_prophecy') }}" method="POST">
+      <label for="title">Title</label>
+      <input type="text" name="title" id="title" placeholder="Prophecy title..." required>
+
+      <label for="description">Description</label>
+      <textarea name="description" id="description" rows="6" placeholder="Write your prophecy here…" required></textarea>
+
+      <button type="submit">Submit Prophecy</button>
+    </form>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prayer Requests</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background: #000 url('{{ url_for("static", filename="images/prayer.png") }}') center/cover fixed;
+      color: #e0e0e0;
+      margin: 0; padding: 0;
+    }
+    a { text-decoration: none; }
+
+    /* Header */
+    .header {
+      position: relative;
+      background: rgba(0,0,0,0.8);
+      padding: 20px; text-align: center;
+      border-bottom: 2px solid #00FFFF;
+    }
+    .header h1 { margin:0; color:#00FFFF; font-size:2em; }
+    .header .back-button,
+    .header .new-request-button {
+      position:absolute; top:20px;
+      background:#00FFFF; color:#000;
+      padding:8px 16px; border:none; border-radius:4px;
+      font-weight:bold; transition:transform .2s;
+    }
+    .header .back-button:hover,
+    .header .new-request-button:hover { transform:scale(1.05); }
+    .header .back-button { left:20px; }
+    .header .new-request-button { right:20px; }
+
+    /* Search & Filters */
+    .search-container {
+      display:flex; flex-wrap:wrap;
+      align-items:center; justify-content:space-between;
+      padding:10px 20px; background:rgba(0,0,0,0.7);
+      border-bottom:1px solid #00FFFF;
+    }
+    #searchBox {
+      flex:1; max-width:400px;
+      padding:8px 12px; margin-right:10px;
+      border:1px solid #00FFFF; border-radius:4px;
+      background:#000; color:#e0e0e0;
+      transition:border-color .3s;
+    }
+    #searchBox:focus { border-color:#FFF; }
+    .filter-buttons button {
+      margin-left:6px; padding:8px 12px;
+      background:#00FFFF; color:#000;
+      border:none; border-radius:4px; cursor:pointer;
+      transition:background .3s,color .3s;
+    }
+    .filter-buttons button.active {
+      background:#000; color:#00FFFF;
+      animation:pulse 1s infinite alternate;
+    }
+    @keyframes pulse {
+      from { box-shadow:0 0 5px #00FFFF; }
+      to   { box-shadow:0 0 20px #00FFFF; }
+    }
+
+    /* Table */
+    table {
+      width:100%; border-collapse:collapse;
+      margin:20px 0; background:rgba(0,0,0,0.7);
+    }
+    th, td {
+      padding:10px; border:1px solid #00FFFF;
+      text-align:left; vertical-align:top;
+    }
+    th {
+      background:rgba(0,255,255,0.8); color:#000;
+    }
+    tr.data-row:hover {
+      background:#00FFFF; color:#000; cursor:pointer;
+    }
+
+    /* Details */
+    .details-row { display:none; background:#222; }
+    .details-content {
+      padding:10px; background:#000; color:#fff;
+      border-top:1px solid #00FFFF;
+    }
+    .stats { font-size:.9em; margin-bottom:8px; }
+    .added-prayers { margin-top:10px; border-top:1px solid #00FFFF; padding-top:10px; }
+    .added-prayer { margin-bottom:8px; }
+    .added-prayer span { font-weight:bold; }
+
+    .add-prayer-form {
+      margin-top:12px;
+    }
+    .add-prayer-form input {
+      width:70%; padding:6px; margin-right:6px;
+      border:1px solid #00FFFF; border-radius:4px;
+      background:#000; color:#e0e0e0;
+    }
+    .add-prayer-form button {
+      padding:6px 12px; border:none; border-radius:4px;
+      background:#00FFFF; color:#000; cursor:pointer;
+      transition:transform .2s;
+    }
+    .add-prayer-form button:hover { transform:scale(1.05); }
+
+    .action-btn {
+      background:none; border:none; color:#00FFFF;
+      cursor:pointer; font-size:.9em; margin-left:6px;
+      transition:color .3s;
+    }
+    .action-btn:hover { color:#FFF; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+    <h1>Prayer Requests</h1>
+    <a href="{{ url_for('prayer.add_prayer_request') }}" class="new-request-button">New Request</a>
+  </div>
+
+  <div class="search-container">
+    <input id="searchBox" type="text" placeholder="Search title, description, creator…" />
+    <div class="filter-buttons">
+      <button onclick="applyFilter('all')" data-filter="all" class="active">All</button>
+      <button onclick="applyFilter('1')"   data-filter="1">With Responses</button>
+      <button onclick="applyFilter('0')"   data-filter="0">No Responses</button>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th><th>Date</th><th>By</th><th>Responses</th><th>Last Responder</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="prayersBody">
+      {% for date, group in prayers_by_date.items() %}
+        <tr><th colspan="6" style="background:#000;border:none;padding:6px;">
+          <strong>{{ date.strftime('%B %d, %Y') }}</strong>
+        </th></tr>
+        {% for p in group %}
+        <tr class="data-row" onclick="toggleDetails('details-{{ p.id }}')">
+          <td>{{ p.title }}</td>
+          <td>{{ p.date_posted }}</td>
+          <td>{{ p.creator_first_name }} {{ p.creator_last_name }}</td>
+          <td>{{ p.response_count }}</td>
+          <td>
+            {% if p.last_responder %}
+              {{ p.last_responder.first_name }} {{ p.last_responder.last_name }}
+            {% else %}&mdash;{% endif %}
+          </td>
+          <td>
+            {% if session.user_id==p.creator_id or session.user_role in ['Admin','Owner'] %}
+              <button class="action-btn" onclick="event.stopPropagation(); window.location='{{ url_for('prayer.edit_prayer', prayer_id=p.id) }}'">Edit</button>
+            {% endif %}
+            <form action="{{ url_for('prayer.delete_prayer_request', prayer_request_id=p.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this request?')">
+              <button type="submit" class="action-btn">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <tr class="details-row" id="details-{{ p.id }}">
+          <td colspan="6" class="details-content">
+            <div class="stats"><strong>{{ p.response_count }} response{{ 's' if p.response_count!=1 }}</strong></div>
+            <p>{{ p.description }}</p>
+            <div class="added-prayers">
+              <h4>Added Prayers:</h4>
+              {% if p.added_prayers %}
+                {% for a in p.added_prayers %}
+                  <div class="added-prayer">
+                    <span>{{ a.first_name }} {{ a.last_name }}:</span> {{ a.prayer }}
+                  </div>
+                {% endfor %}
+              {% else %}
+                <p><em>No additional prayers yet.</em></p>
+              {% endif %}
+            </div>
+            <form action="{{ url_for('prayer.add_prayer_to_request', prayer_request_id=p.id) }}" method="POST" class="add-prayer-form" onsubmit="event.stopPropagation()">
+              <input type="text" name="prayer" placeholder="Your prayer…" required/>
+              <button type="submit">Add Prayer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    function toggleDetails(id) {
+      const r = document.getElementById(id);
+      r.style.display = r.style.display === 'table-row' ? 'none' : 'table-row';
+    }
+
+    (function(){
+      const box = document.getElementById('searchBox'),
+            body = document.getElementById('prayersBody'),
+            buttons = document.querySelectorAll('.filter-buttons button');
+      let timer, current = 'all';
+
+      function highlight(){
+        buttons.forEach(b=>b.classList.toggle('active', b.dataset.filter===current));
+      }
+
+      function doSearch(){
+        const q = box.value.trim(),
+              params = new URLSearchParams();
+        if(q) params.set('q', q);
+        if(current!=='all') params.set('has_responses', current);
+        fetch(`{{ url_for('prayer.search_prayers') }}?${params}`)
+          .then(r=>r.json())
+          .then(arr=>{
+            if(!arr.length){
+              body.innerHTML='<tr><td colspan="6">No matches.</td></tr>';
+              return;
+            }
+            let html='', lastDate='';
+            arr.forEach(p=>{
+              if(p.date_posted!==lastDate){
+                lastDate=p.date_posted;
+                html+=`<tr><th colspan="6" style="background:#000;border:none;padding:6px;">
+                          <strong>${p.date_posted}</strong>
+                       </th></tr>`;
+              }
+              html+=`
+                <tr class="data-row" onclick="toggleDetails('details-${p.id}')">
+                  <td>${p.title}</td>
+                  <td>${p.date_posted}</td>
+                  <td>${p.creator_name}</td>
+                  <td>${p.response_count}</td>
+                  <td>${p.response_count>0?'—':'—'}</td>
+                  <td>—</td>
+                </tr>
+                <tr class="details-row" id="details-${p.id}">
+                  <td colspan="6" class="details-content">
+                    <div class="stats"><strong>${p.response_count} response${p.response_count!=1?'s':''}</strong></div>
+                    <p>${p.description}</p>
+                  </td>
+                </tr>`;
+            });
+            body.innerHTML = html;
+          });
+      }
+
+      box.addEventListener('input', ()=>{
+        clearTimeout(timer);
+        timer = setTimeout(doSearch, 300);
+      });
+
+      window.applyFilter = f=>{
+        current = String(f);
+        highlight();
+        doSearch();
+      };
+
+      highlight();
+    })();
+  </script>
+
+</body>
+</html>

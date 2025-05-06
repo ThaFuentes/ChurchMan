@@ -11,11 +11,13 @@ members_bp = Blueprint('members', __name__, template_folder='templates')
 
 DATABASE = 'church_management.db'
 
+
 # Helper function to get a database connection
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 # Function to log changes in the change_records table
 def log_change(user_id, action, target_id=None, target_username=None, change_details=None):
@@ -27,6 +29,7 @@ def log_change(user_id, action, target_id=None, target_username=None, change_det
     ''', (user_id, action, target_id, target_username, change_details))
     conn.commit()
     conn.close()
+
 
 # Route to display members directory with search functionality
 @members_bp.route('/members-directory', methods=['GET', 'POST'])
@@ -142,7 +145,9 @@ def members_directory():
     log_change(user_id=current_user_id, action='view', change_details='Viewed members directory')
 
     conn.close()
-    return render_template('members_directory.html', members=members, user_role=user_role, search_field=search_field, search_term=search_term)
+    return render_template('members_directory.html', members=members, user_role=user_role, search_field=search_field,
+                           search_term=search_term)
+
 
 # Route to add a new member
 @members_bp.route('/add-member', methods=['GET', 'POST'])
@@ -185,7 +190,8 @@ def add_member():
             INSERT INTO users (first_name, last_name, phone, email, address, username, password, role, accepts_emails, created_by)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            first_name, last_name, phone, email, address, username, hashed_password, role, accepts_emails, current_user_id))
+            first_name, last_name, phone, email, address, username, hashed_password, role, accepts_emails,
+            current_user_id))
 
         conn.commit()
         new_member_id = cursor.lastrowid
@@ -201,6 +207,7 @@ def add_member():
 
     conn.close()
     return render_template('add_member.html')
+
 
 # Route to delete a member
 @members_bp.route('/delete-member/<int:id>', methods=['POST'])
@@ -247,6 +254,7 @@ def delete_member(id):
     flash('Member deleted successfully.')
     return redirect(url_for('members.members_directory'))
 
+
 # Route to default the members directory to a Word document
 @members_bp.route('/default-directory')
 def export_directory():
@@ -269,7 +277,8 @@ def export_directory():
     # Set up the table with specific column widths
     table = doc.add_table(rows=1, cols=8)
     table.autofit = False
-    col_widths = [Inches(1.0), Inches(1.0), Inches(1.2), Inches(1.5), Inches(2.5), Inches(1.0), Inches(1.0), Inches(1.0)]
+    col_widths = [Inches(1.0), Inches(1.0), Inches(1.2), Inches(1.5), Inches(2.5), Inches(1.0), Inches(1.0),
+                  Inches(1.0)]
     hdr_cells = table.rows[0].cells
     headers = ['First Name', 'Last Name', 'Phone', 'Email', 'Address', 'Role', 'Username', 'Accepts Emails']
 

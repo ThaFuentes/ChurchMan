@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Announcements</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background: #000 url('{{ url_for("static", filename="images/announcements.png") }}') center/cover fixed;
+      color: #e0e0e0;
+      margin: 0; padding: 0;
+    }
+    a { text-decoration: none; }
+
+    /* Header */
+    .header {
+      position: relative;
+      background: rgba(0,0,0,0.8);
+      padding: 20px; text-align: center;
+      border-bottom: 2px solid #00FFFF;
+    }
+    .header h1 { margin:0; color:#00FFFF; font-size:2em; }
+    .header .back-button,
+    .header .new-button {
+      position:absolute; top:20px;
+      background:#00FFFF; color:#000;
+      padding:8px 16px; border:none; border-radius:4px;
+      font-weight:bold; transition:transform .2s;
+    }
+    .header .back-button:hover,
+    .header .new-button:hover { transform:scale(1.05); }
+    .header .back-button { left:20px; }
+    .header .new-button { right:20px; }
+
+    /* Search & Filters */
+    .search-container {
+      display:flex; flex-wrap:wrap;
+      align-items:center; justify-content:space-between;
+      padding:10px 20px; background:rgba(0,0,0,0.7);
+      border-bottom:1px solid #00FFFF;
+    }
+    #searchBox {
+      flex:1; max-width:400px;
+      padding:8px 12px; margin-right:10px;
+      border:1px solid #00FFFF; border-radius:4px;
+      background:#000; color:#e0e0e0;
+      transition:border-color .3s;
+    }
+    #searchBox:focus { border-color:#FFF; }
+    .filter-buttons button {
+      margin-left:6px; padding:8px 12px;
+      background:#00FFFF; color:#000;
+      border:none; border-radius:4px; cursor:pointer;
+      transition:background .3s,color .3s;
+    }
+    .filter-buttons button.active {
+      background:#000; color:#00FFFF;
+      animation:pulse 1s infinite alternate;
+    }
+    @keyframes pulse {
+      from { box-shadow:0 0 5px #00FFFF; }
+      to   { box-shadow:0 0 20px #00FFFF; }
+    }
+
+    /* Table */
+    table {
+      width:100%; border-collapse:collapse;
+      margin:20px 0; background:rgba(0,0,0,0.7);
+    }
+    th, td {
+      padding:10px; border:1px solid #00FFFF;
+      text-align:left; vertical-align:top;
+    }
+    th {
+      background:rgba(0,255,255,0.8); color:#000;
+    }
+    tr.data-row:hover {
+      background:#00FFFF; color:#000; cursor:pointer;
+    }
+
+    /* Details */
+    .details-row { display:none; background:#222; }
+    .details-content {
+      padding:10px; background:#000; color:#fff;
+      border-top:1px solid #00FFFF;
+    }
+    .comments { margin-top:10px; }
+    .comment { margin-bottom:8px; }
+    .comment strong { color:#00FFFF; }
+
+    .add-comment-form {
+      margin-top:12px;
+    }
+    .add-comment-form input {
+      width:70%; padding:6px; margin-right:6px;
+      border:1px solid #00FFFF; border-radius:4px;
+      background:#000; color:#e0e0e0;
+    }
+    .add-comment-form button {
+      padding:6px 12px; border:none; border-radius:4px;
+      background:#00FFFF; color:#000; cursor:pointer;
+      transition:transform .2s;
+    }
+    .add-comment-form button:hover { transform:scale(1.05); }
+
+    .action-btn {
+      background:none; border:none; color:#00FFFF;
+      cursor:pointer; font-size:.9em; margin-left:6px;
+      transition:color .3s;
+    }
+    .action-btn:hover { color:#FFF; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+    <h1>Announcements</h1>
+    <a href="{{ url_for('announcements.create_announcement') }}" class="new-button">New Announcement</a>
+  </div>
+
+  <div class="search-container">
+    <input id="searchBox" type="text" placeholder="Search title, content, or creator…" />
+    <div class="filter-buttons">
+      <button onclick="applyFilter('all')" data-filter="all" class="active">All</button>
+      <button onclick="applyFilter('1')" data-filter="1">Active</button>
+      <button onclick="applyFilter('0')" data-filter="0">Inactive</button>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th><th>Date Posted</th><th>Created By</th><th>Comments</th><th>Status</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="annBody">
+      {% for a in announcements %}
+      <tr class="data-row" onclick="toggleDetails('details-{{ a.id }}')">
+        <td>{{ a.title }}</td>
+        <td>{{ a.created_at[:19].replace('T',' ') }}</td>
+        <td>{{ a.creator_username }}</td>
+        <td>{{ a.comment_count }}</td>
+        <td>
+          {% if a.is_active == 1 %}
+            <span class="active">Active</span>
+          {% else %}
+            <span class="inactive">Inactive</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if session.user_id == a.user_id or session.user_role in ['Admin','Owner'] %}
+            <a class="action-btn" href="{{ url_for('announcements.edit_announcement', id=a.id) }}">Edit</a>
+            <form action="{{ url_for('announcements.delete_announcement', id=a.id) }}"
+                  method="POST" style="display:inline;"
+                  onsubmit="return confirm('Deactivate this announcement?')">
+              <button type="submit" class="action-btn">Delete</button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+      <tr class="details-row" id="details-{{ a.id }}">
+        <td colspan="6" class="details-content">
+          <p>{{ a.content }}</p>
+          <div class="comments">
+            <h4>Comments:</h4>
+            {% for c in a.comments %}
+              <div class="comment"><strong>{{ c.username }}:</strong> {{ c.comment }}</div>
+            {% else %}
+              <p><em>No comments yet.</em></p>
+            {% endfor %}
+          </div>
+          {% if a.comments_enabled %}
+          <form action="{{ url_for('announcements.add_comment', ann_id=a.id) }}"
+                method="POST" class="add-comment-form" onsubmit="event.stopPropagation()">
+            <input name="comment" placeholder="Your comment…" required/>
+            <button type="submit">Add Comment</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    function toggleDetails(id) {
+      const r = document.getElementById(id);
+      r.style.display = r.style.display === 'table-row' ? 'none' : 'table-row';
+    }
+
+    (function(){
+      const box = document.getElementById('searchBox'),
+            body = document.getElementById('annBody'),
+            buttons = document.querySelectorAll('.filter-buttons button');
+      let timer, current = 'all';
+
+      function highlight(){
+        buttons.forEach(b=>b.classList.toggle('active', b.dataset.filter===current));
+      }
+
+      function doSearch(){
+        const q = box.value.trim(),
+              params = new URLSearchParams();
+        if(q) params.set('q', q);
+        if(current!=='all') params.set('is_active', current);
+        fetch(`{{ url_for('announcements.search_announcements') }}?${params}`)
+          .then(r=>r.json())
+          .then(arr=>{
+            if(!arr.length){
+              body.innerHTML='<tr><td colspan="6">No matches.</td></tr>';
+              return;
+            }
+            let html='';
+            arr.forEach(a=>{
+              html+=`
+                <tr class="data-row" onclick="toggleDetails('details-${a.id}')">
+                  <td>${a.title}</td>
+                  <td>${a.created_at}</td>
+                  <td>${a.creator_username}</td>
+                  <td>${a.comment_count}</td>
+                  <td>${a.is_active === 1 ? 'Active' : 'Inactive'}</td>
+                  <td>—</td>
+                </tr>
+                <tr class="details-row" id="details-${a.id}">
+                  <td colspan="6" class="details-content">
+                    <p>${a.content}</p>
+                  </td>
+                </tr>`;
+            });
+            body.innerHTML = html;
+          });
+      }
+
+      box.addEventListener('input', ()=>{
+        clearTimeout(timer);
+        timer = setTimeout(doSearch, 300);
+      });
+
+      window.applyFilter = f=>{
+        current = String(f);
+        highlight();
+        doSearch();
+      };
+
+      highlight();
+    })();
+  </script>
+
+</body>
+</html>

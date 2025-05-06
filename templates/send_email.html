@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Send Email</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background: #000 url('{{ url_for("static", filename="images/prayer.png") }}') center/cover fixed;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+    }
+    a {
+      text-decoration: none;
+    }
+
+    /* Header */
+    .header {
+      position: relative;
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid #00FFFF;
+    }
+    .header h1 {
+      margin: 0;
+      color: #00FFFF;
+      font-size: 2em;
+    }
+    .header .back-button {
+      position: absolute;
+      top: 20px;
+      background: #00FFFF;
+      color: #000;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      transition: transform 0.2s;
+    }
+    .header .back-button:hover {
+      transform: scale(1.05);
+    }
+    .header .back-button {
+      left: 20px;
+    }
+
+    /* Email Form Styles */
+    .container {
+      width: 50%;
+      margin: 100px auto;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="email"], input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #00FFFF;
+      border-radius: 4px;
+      font-size: 16px;
+      background: #000;
+      color: #e0e0e0;
+    }
+
+    button {
+      background-color: #00aaff;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #0088cc;
+    }
+
+    .flash {
+      padding: 10px;
+      background-color: #ff4c4c;
+      color: white;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .flash.success {
+      background-color: #4caf50;
+    }
+
+    .flash.error {
+      background-color: #f44336;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+  <h1>Send Email</h1>
+</div>
+
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Email Sending Form -->
+  <form action="{{ url_for('email.send_email_route') }}" method="POST">
+    <div class="form-group">
+      <label for="to_email">Recipient Email</label>
+      <input type="email" id="to_email" name="to_email" placeholder="Enter recipient's email" required>
+    </div>
+
+    <div class="form-group">
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" name="subject" placeholder="Enter email subject" required>
+    </div>
+
+    <div class="form-group">
+      <label for="body">Body</label>
+      <textarea id="body" name="body" rows="6" placeholder="Enter email body" required></textarea>
+    </div>
+
+    <button type="submit">Send Email</button>
+  </form>
+</div>
+
+</body>
+</html>

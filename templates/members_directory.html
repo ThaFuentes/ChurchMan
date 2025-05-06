@@ -11,22 +11,27 @@
       margin: 0;
       padding: 0;
       background-color: #000;
-      color: #fff;
-      background-image: url('{{ url_for('static', filename='images/members_directory.png') }}');
+      color: #e0e0e0;
+      background-image: url('{{ url_for('static', filename='images/settings_background.png') }}');
       background-size: cover;
-      background-position: center;
+      background-position: center center;
+      background-attachment: fixed;
     }
+
     .header {
-      background-color: #000;
+      position: relative;
+      background-color: rgba(0, 0, 0, 0.8);
       padding: 20px;
       text-align: center;
-      position: relative;
+      border-bottom: 2px solid #00FFFF;
     }
+
     .header h1 {
       margin: 0;
       font-size: 2em;
       color: #00FFFF;
     }
+
     .back-button {
       position: absolute;
       left: 20px;
@@ -39,6 +44,7 @@
       border-radius: 5px;
       text-decoration: none;
     }
+
     .flash-message {
       background-color: rgba(0, 0, 0, 0.8);
       color: #fff;
@@ -48,6 +54,7 @@
       border-radius: 5px;
       max-width: 80%;
     }
+
     .form-container {
       margin: 20px auto;
       padding: 20px;
@@ -56,6 +63,7 @@
       max-width: 600px;
       text-align: center;
     }
+
     .collapsible-button {
       padding: 10px 20px;
       background-color: #00FFFF;
@@ -67,6 +75,7 @@
       margin: 10px 0;
       font-size: 1.2em;
     }
+
     .collapsible-content {
       display: none;
       margin-top: 10px;
@@ -74,10 +83,12 @@
       overflow: hidden;
       transition: max-height 0.2s ease-out;
     }
+
     .collapsible-content.active {
       display: block;
       max-height: 1000px; /* Large value to ensure content fits */
     }
+
     .form-container input,
     .form-container select {
       padding: 10px;
@@ -88,6 +99,7 @@
       background-color: #222;
       color: #fff;
     }
+
     .form-container .accepts-emails-container {
       display: flex;
       align-items: center;
@@ -95,9 +107,7 @@
       width: 100%;
       margin: 10px 0;
     }
-    .form-container .accepts-emails-container label {
-      margin-right: 10px;
-    }
+
     .form-container button {
       padding: 10px 20px;
       background-color: #00FFFF;
@@ -109,10 +119,12 @@
       width: 100%;
       max-width: 200px;
     }
+
     .search-container {
       margin: 20px;
       text-align: center;
     }
+
     .search-container select,
     .search-container input {
       padding: 10px;
@@ -122,6 +134,7 @@
       background-color: #222;
       color: #fff;
     }
+
     .search-container button {
       padding: 10px 20px;
       margin: 10px 5px;
@@ -131,6 +144,7 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
     .clear-button {
       padding: 10px 20px;
       margin-left: 10px;
@@ -141,6 +155,7 @@
       cursor: pointer;
       text-decoration: none;
     }
+
     .export-button {
       padding: 10px 20px;
       margin-left: 10px;
@@ -151,23 +166,27 @@
       cursor: pointer;
       text-decoration: none;
     }
+
     table {
       width: 100%;
       margin: 20px 0;
       border-collapse: collapse;
       background-color: rgba(0, 0, 0, 0.7);
     }
+
     th, td {
       padding: 10px;
       text-align: left;
       color: #fff;
       border: 1px solid #00FFFF;
     }
+
     th {
       background-color: rgba(0, 255, 255, 0.8);
       color: #000;
     }
-    .edit-button, .delete-button {
+
+    .edit-button, .delete-button, .view-family-button {
       background-color: #00FFFF;
       color: #000;
       padding: 5px 10px;
@@ -176,8 +195,13 @@
       cursor: pointer;
       margin-right: 5px;
     }
+
     .delete-button {
       background-color: #FF0000;
+    }
+
+    .view-family-button {
+      background-color: #008000;
     }
 
     /* Mobile Specific Styles */
@@ -185,9 +209,11 @@
       .header {
         padding: 10px;
       }
+
       .header h1 {
         font-size: 1.5em;
       }
+
       .back-button {
         position: static;
         display: block;
@@ -196,39 +222,47 @@
         text-align: center;
         padding: 8px;
       }
+
       .flash-message {
         font-size: 0.9em;
         padding: 8px;
       }
+
       .form-container {
         margin: 10px;
         padding: 10px;
       }
+
       .collapsible-button {
         font-size: 1em;
         padding: 8px 16px;
       }
+
       .form-container input,
       .form-container select {
         padding: 8px;
         font-size: 0.9em;
       }
+
       .form-container button {
         padding: 8px 16px;
         font-size: 0.9em;
         max-width: 150px;
       }
+
       .search-container select,
       .search-container input {
         padding: 8px;
         font-size: 0.9em;
       }
+
       .search-container button,
       .clear-button,
       .export-button {
         padding: 8px 16px;
         font-size: 0.9em;
       }
+
       table, th, td {
         font-size: 0.8em;
         padding: 8px;
@@ -247,8 +281,8 @@
       }
     }
 
-    function editMember(id, firstName, lastName, phone, email, address, username, role, acceptsEmails) {
-      toggleCollapsible(null, 'editMemberForm'); // Ensure the form is open
+    function editMember(id, firstName, lastName, phone, email, address, username, role, acceptsEmails, birthday, showBirthday) {
+      toggleCollapsible(null, 'editMemberForm');
 
       document.querySelector('#editMemberForm input[name="id"]').value = id;
       document.querySelector('#editMemberForm input[name="first_name"]').value = firstName;
@@ -259,6 +293,8 @@
       document.querySelector('#editMemberForm input[name="username"]').value = username;
       document.querySelector('#editMemberForm select[name="role"]').value = role;
       document.querySelector(`#editMemberForm input[name="accepts_emails"][value="${acceptsEmails}"]`).checked = true;
+      document.querySelector('#editMemberForm input[name="birthday"]').value = birthday;
+      document.querySelector(`#editMemberForm input[name="show_birthday"][value="${showBirthday}"]`).checked = true;
 
       const deleteButton = document.querySelector('#delete-button');
       deleteButton.style.display = 'block';
@@ -277,6 +313,11 @@
         alert("No valid member ID selected for deletion.");
       }
     }
+
+    function viewFamily(memberId) {
+      const familyContent = document.getElementById('familyContent-' + memberId);
+      familyContent.style.display = familyContent.style.display === 'block' ? 'none' : 'block';
+    }
   </script>
 </head>
 <body>
@@ -285,16 +326,12 @@
     <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
   </div>
 
-  <!-- Flash message display -->
   {% with messages = get_flashed_messages() %}
     {% if messages %}
-      <div class="flash-message">
-        {{ messages[0] }}
-      </div>
+      <div class="flash-message">{{ messages[0] }}</div>
     {% endif %}
   {% endwith %}
 
-  <!-- Only show form for Admins and Owners -->
   {% if user_role in ['Admin', 'Owner'] %}
     <div class="form-container">
       <button class="collapsible-button" onclick="toggleCollapsible(this, 'newMemberForm')">New Member</button>
@@ -319,6 +356,15 @@
             <label><input type="radio" name="accepts_emails" value="Yes" required> Yes</label>
             <label><input type="radio" name="accepts_emails" value="No" required> No</label>
           </div>
+
+          <!-- inline birthday + show birthday -->
+          <div style="display:flex; align-items:center; gap:8px; justify-content:center; margin:10px 0;">
+            <input type="date" name="birthday" placeholder="Birthday">
+            <label>Show Birthday:</label>
+            <label><input type="radio" name="show_birthday" value="1"> Yes</label>
+            <label><input type="radio" name="show_birthday" value="0" checked> No</label>
+          </div>
+
           <button type="submit">Save Member</button>
         </form>
       </div>
@@ -345,6 +391,15 @@
             <label><input type="radio" name="accepts_emails" value="Yes" required> Yes</label>
             <label><input type="radio" name="accepts_emails" value="No" required> No</label>
           </div>
+
+          <!-- inline birthday + show birthday -->
+          <div style="display:flex; align-items:center; gap:8px; justify-content:center; margin:10px 0;">
+            <input type="date" name="birthday" placeholder="Birthday">
+            <label>Show Birthday:</label>
+            <label><input type="radio" name="show_birthday" value="1"> Yes</label>
+            <label><input type="radio" name="show_birthday" value="0" checked> No</label>
+          </div>
+
           <button type="submit">Save Changes</button>
           <button type="button" id="delete-button" style="display:none;" class="delete-button" onclick="deleteMember()">Delete Member</button>
         </form>
@@ -352,7 +407,6 @@
     </div>
   {% endif %}
 
-  <!-- Search container placed under the form -->
   <div class="search-container">
     <form method="GET" action="{{ url_for('members.members_directory') }}">
       <select name="search_field">
@@ -380,32 +434,82 @@
       <th>Phone</th>
       <th>Email</th>
       <th>Address</th>
+      <th>Birthday</th>
       <th>Role</th>
       <th>Username</th>
       <th>Accepts Emails</th>
       <th>Actions</th>
     </tr>
     {% if members %}
-      {% for member in members %}
+      {% set pending_members = members
+         | selectattr('status','equalto','pending')
+         | sort(attribute='first_name')
+         | sort(attribute='last_name')
+         | list %}
+      {% set other_members = members
+         | rejectattr('status','equalto','pending')
+         | sort(attribute='first_name')
+         | sort(attribute='last_name')
+         | list %}
+      {% for member in pending_members + other_members %}
       <tr>
         <td>{{ member.first_name }}</td>
         <td>{{ member.last_name }}</td>
         <td>{{ member.phone }}</td>
         <td>{{ member.email }}</td>
         <td>{{ member.address }}</td>
+        <td>
+          {% if member.show_birthday %}
+            {{ member.birthday }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
         <td>{{ member.role }}</td>
         <td>{{ member.username }}</td>
         <td>{{ 'Yes' if member.accepts_emails else 'No' }}</td>
         <td>
-          {% if user_role in ['Admin', 'Owner'] %}
-            <button type="button" class="edit-button" onclick="editMember('{{ member.id }}', '{{ member.first_name }}', '{{ member.last_name }}', '{{ member.phone }}', '{{ member.email }}', '{{ member.address }}', '{{ member.username }}', '{{ member.role }}', '{{ 'Yes' if member.accepts_emails else 'No' }}')">Edit</button>
-          {% endif %}
+          <button type="button" class="view-family-button" onclick="viewFamily('{{ member.id }}')">View Family</button>
+          <button type="button" class="edit-button"
+                  onclick="editMember(
+                    '{{ member.id }}',
+                    '{{ member.first_name }}',
+                    '{{ member.last_name }}',
+                    '{{ member.phone }}',
+                    '{{ member.email }}',
+                    '{{ member.address }}',
+                    '{{ member.username }}',
+                    '{{ member.role }}',
+                    '{{ 'Yes' if member.accepts_emails else 'No' }}',
+                    '{{ member.birthday }}',
+                    '{{ member.show_birthday }}'
+                  )">
+            Edit
+          </button>
+        </td>
+      </tr>
+      <tr id="familyContent-{{ member.id }}" style="display:none;">
+        <td colspan="10">
+          <table>
+            <tr>
+              <th>Relative Name</th>
+              <th>Relation</th>
+              <th>Status</th>
+            </tr>
+            {% for family in member.family %}
+            <tr>
+              <td>{{ family.first_name }} {{ family.last_name }}</td>
+              <td>{{ family.relation_type }}</td>
+              <td>{{ family.status }}</td>
+            </tr>
+            {% endfor %}
+          </table>
         </td>
       </tr>
       {% endfor %}
     {% else %}
       <tr>
-        <td colspan="9" style="text-align:center;">No members found matching your search criteria.</td>
+        <td colspan="10" style="text-align:center;">No members found matching your search criteria.</td>
       </tr>
     {% endif %}
   </table>

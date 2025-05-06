@@ -2,30 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Change Records</title>
   <style>
-    /* Base styles for desktop view */
+    /* Base Styles */
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
       background-color: #000;
-      color: #fff;
+      color: #e0e0e0;
       background-image: url('{{ url_for('static', filename='images/change.png') }}');
       background-size: cover;
-      background-position: center;
+      background-position: center center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 0;
     }
     .header {
-      background-color: #000;
+      position: relative;
+      background-color: rgba(0,0,0,0.8);
       padding: 20px;
       text-align: center;
-      position: relative;
+      border-bottom: 2px solid #00FFFF;
     }
     .header h1 {
       margin: 0;
-      font-size: 2em;
       color: #00FFFF;
+      font-size: 2em;
     }
     .back-button {
       position: absolute;
@@ -33,65 +35,102 @@
       top: 20px;
       background-color: #00FFFF;
       color: #000;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.9em;
+    }
+
+    /* Tabs Navigation */
+    .tabs {
+      display: flex;
+      background-color: rgba(0,0,0,0.7);
+      border-bottom: 1px solid #333;
+    }
+    .tab {
+      flex: 1;
+      padding: 15px;
+      text-align: center;
       cursor: pointer;
-      border-radius: 5px;
+      color: #bbb;
+      border-right: 1px solid #333;
       text-decoration: none;
     }
+    .tab:last-child { border-right: none; }
+    .tab.active {
+      background-color: #000;
+      color: #00FFFF;
+      font-weight: bold;
+    }
+
+    /* Content Panel */
+    .content {
+      /* was max-width: 900px; */
+      max-width: 95%;
+      margin: 20px auto;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Controls (Delete All & Search) */
     .controls-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px;
-      background-color: rgba(0, 0, 0, 0.7);
-      margin: 20px;
-      border-radius: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
     }
-    .delete-all-button {
+    .controls-container form button.delete-all {
       background-color: #FF0000;
       color: #fff;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
+      font-weight: bold;
       cursor: pointer;
     }
     .search-container {
       display: flex;
-      justify-content: flex-end;
       align-items: center;
+      margin-top: 10px;
     }
     .search-container input {
-      padding: 10px;
-      width: 300px;
-      border-radius: 5px;
-      border: 1px solid #00FFFF;
-      background-color: #222;
-      color: #fff;
-      margin-right: 10px;
+      padding: 8px;
+      border: 1px solid #333;
+      border-radius: 4px;
+      background-color: #1f1f1f;
+      color: #e0e0e0;
+      margin-right: 8px;
     }
     .search-container button {
-      padding: 10px 20px;
+      padding: 8px 16px;
       background-color: #00FFFF;
       color: #000;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
+      font-weight: bold;
       cursor: pointer;
     }
+
+    /* Table Styles */
     table {
       width: 100%;
-      margin: 20px 0;
       border-collapse: collapse;
-      background-color: rgba(0, 0, 0, 0.7);
+      margin-bottom: 20px;
+      background-color: rgba(0, 0, 0, 0.8);
     }
     th, td {
       padding: 10px;
-      text-align: left;
       border: 1px solid #00FFFF;
+      text-align: left;
+      color: #e0e0e0;
     }
     th {
-      background-color: rgba(0, 255, 255, 0.8);
-      color: #000;
+      background-color: rgba(0, 255, 255, 0.2);
       cursor: pointer;
     }
     td form {
@@ -101,64 +140,55 @@
       background-color: #FF0000;
       color: #fff;
       border: none;
-      border-radius: 5px;
+      border-radius: 4px;
       padding: 5px 10px;
       cursor: pointer;
     }
+
+    /* Pagination */
     .pagination {
       text-align: center;
-      margin: 20px 0;
+      margin-top: 10px;
     }
     .pagination a {
-      color: #00FFFF;
-      padding: 10px 20px;
-      text-decoration: none;
-      background-color: #222;
-      border-radius: 5px;
+      padding: 8px 16px;
       margin: 0 5px;
+      background-color: #1f1f1f;
+      color: #00FFFF;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
     }
     .pagination a.disabled {
       color: #555;
       cursor: default;
     }
+    .pagination a.active {
+      background-color: #00FFFF;
+      color: #000;
+    }
 
-    /* Mobile specific styles */
+    /* Responsive */
     @media (max-width: 768px) {
-      .header {
-        padding: 10px;
-      }
-      .header h1 {
-        font-size: 1.5em;
-      }
       .back-button {
         position: static;
         display: block;
         width: 80%;
         margin: 10px auto;
         text-align: center;
-        padding: 8px;
       }
       .controls-container {
         flex-direction: column;
-        align-items: center;
-        margin: 10px;
-        padding: 10px;
-      }
-      .delete-all-button {
-        width: 90%;
-        margin-bottom: 10px;
+        align-items: stretch;
       }
       .search-container {
-        width: 90%;
-        justify-content: center;
-        flex-direction: column;
+        justify-content: stretch;
+        margin-top: 10px;
       }
-      .search-container input {
-        width: 90%;
-        margin-bottom: 10px;
-      }
+      .search-container input,
       .search-container button {
-        width: 90%;
+        width: 100%;
+        margin: 4px 0;
       }
       table, th, td {
         font-size: 0.9em;
@@ -168,100 +198,100 @@
         overflow-x: auto;
       }
       .pagination a {
-        padding: 8px 16px;
+        padding: 6px 12px;
         margin: 0 3px;
       }
     }
   </style>
+
   <script>
     function confirmDeleteAll() {
       return confirm("Are you sure you want to delete all records? This action cannot be undone.");
     }
-
-    function confirmDeleteIndividual(event, recordId) {
-      const dontAskAgain = localStorage.getItem('dontAskDelete_' + recordId);
-      if (dontAskAgain === 'true') {
-        return true; // Skip confirmation
+    function confirmDeleteIndividual(e, id) {
+      const skip = localStorage.getItem('skipDeleteConfirm_' + id);
+      if (skip === 'true') return true;
+      const ok = confirm("Delete this record? This cannot be undone.");
+      if (!ok) { e.preventDefault(); return false; }
+      if (confirm("Skip this confirmation next time?")) {
+        localStorage.setItem('skipDeleteConfirm_' + id, 'true');
       }
-
-      const confirmed = confirm("Are you sure you want to delete this record? This action cannot be undone.");
-      if (confirmed) {
-        const dontAsk = confirm("Do you want to skip this confirmation next time for this record?");
-        if (dontAsk) {
-          localStorage.setItem('dontAskDelete_' + recordId, 'true');
-        }
-        return true;
-      } else {
-        event.preventDefault(); // Cancel deletion if not confirmed
-        return false;
-      }
+      return true;
     }
   </script>
 </head>
 <body>
   <div class="header">
-    <h1>Change Records</h1>
     <a href="{{ url_for('dashboard') }}" class="back-button">Back to Dashboard</a>
+    <h1>Change Records</h1>
   </div>
 
-  <div class="controls-container">
-    <form method="POST" action="{{ url_for('delete_all_records') }}" onsubmit="return confirmDeleteAll()">
-      <button type="submit" class="delete-all-button">Delete All Records</button>
-    </form>
+  <nav class="tabs">
+    <a class="tab" href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a class="tab active" href="{{ url_for('change_records') }}">Change Records</a>
+  </nav>
 
-    <div class="search-container">
-      <form method="GET" action="{{ url_for('change_records') }}">
-        <input type="text" name="search" placeholder="Search..." value="{{ search_query }}">
-        <button type="submit">Search</button>
+  <div class="content">
+    <div class="controls-container">
+      <form method="POST" action="{{ url_for('delete_all_records') }}" onsubmit="return confirmDeleteAll()">
+        <button type="submit" class="delete-all">Delete All Records</button>
       </form>
-    </div>
-  </div>
-
-  <table>
-    <tr>
-      <th><a href="{{ url_for('change_records', search=search_query, sort_by='user_id', sort_order=next_sort_order, page=page) }}">User ID</a></th>
-      <th><a href="{{ url_for('change_records', search=search_query, sort_by='username', sort_order=next_sort_order, page=page) }}">Username</a></th>
-      <th><a href="{{ url_for('change_records', search=search_query, sort_by='action', sort_order=next_sort_order, page=page) }}">Action</a></th>
-      <th><a href="{{ url_for('change_records', search=search_query, sort_by='target_id', sort_order=next_sort_order, page=page) }}">Target ID</a></th>
-      <th><a href="{{ url_for('change_records', search=search_query, sort_by='target_username', sort_order=next_sort_order, page=page) }}">Target Username</a></th>
-      <th><a href="{{ url_for('change_records', search=search_query, sort_by='change_details', sort_order=next_sort_order, page=page) }}">Change Details</a></th>
-      <th><a href="{{ url_for('change_records', search=search_query, sort_by='timestamp', sort_order=next_sort_order, page=page) }}">Timestamp</a></th>
-      <th>Actions</th>
-    </tr>
-    {% for record in records %}
-    <tr>
-      <td>{{ record['user_id'] }}</td>
-      <td>{{ record['username'] }}</td>
-      <td>{{ record['action'] }}</td>
-      <td>{{ record['target_id'] or 'N/A' }}</td>
-      <td>{{ record['target_username'] or 'N/A' }}</td>
-      <td>{{ record['change_details'] }}</td>
-      <td>{{ record['timestamp'] }}</td>
-      <td>
-        <form method="POST" action="{{ url_for('delete_record', id=record['id'], page=page) }}" onsubmit="return confirmDeleteIndividual(event, '{{ record['id'] }}')">
-          <button type="submit">Delete</button>
+      <div class="search-container">
+        <form method="GET" action="{{ url_for('change_records') }}">
+          <input type="text" name="search" placeholder="Search..." value="{{ search_query }}">
+          <button type="submit">Search</button>
         </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </table>
+      </div>
+    </div>
 
-  <div class="pagination">
-    {% if page > 1 %}
-      <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=page-1) }}">&laquo; Previous</a>
-    {% else %}
-      <a class="disabled">&laquo; Previous</a>
-    {% endif %}
+    <table>
+      <tr>
+        <th><a href="{{ url_for('change_records', search=search_query, sort_by='user_id', sort_order=next_sort_order, page=page) }}">User ID</a></th>
+        <th><a href="{{ url_for('change_records', search=search_query, sort_by='username', sort_order=next_sort_order, page=page) }}">Username</a></th>
+        <th><a href="{{ url_for('change_records', search=search_query, sort_by='action', sort_order=next_sort_order, page=page) }}">Action</a></th>
+        <th><a href="{{ url_for('change_records', search=search_query, sort_by='target_id', sort_order=next_sort_order, page=page) }}">Target ID</a></th>
+        <th><a href="{{ url_for('change_records', search=search_query, sort_by='target_username', sort_order=next_sort_order, page=page) }}">Target Username</a></th>
+        <th><a href="{{ url_for('change_records', search=search_query, sort_by='change_details', sort_order=next_sort_order, page=page) }}">Details</a></th>
+        <th><a href="{{ url_for('change_records', search=search_query, sort_by='timestamp', sort_order=next_sort_order, page=page) }}">Timestamp</a></th>
+        <th>Actions</th>
+      </tr>
+      {% for record in records %}
+      <tr>
+        <td>{{ record.user_id }}</td>
+        <td>{{ record.username }}</td>
+        <td>{{ record.action }}</td>
+        <td>{{ record.target_id or 'N/A' }}</td>
+        <td>{{ record.target_username or 'N/A' }}</td>
+        <td>{{ record.change_details }}</td>
+        <td>{{ record.timestamp }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('delete_record', id=record.id, page=page) }}"
+                onsubmit="return confirmDeleteIndividual(event, '{{ record.id }}')">
+            <button type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
 
-    {% for p in range(1, total_pages + 1) %}
-      <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=p) }}" {% if p == page %}class="active"{% endif %}>{{ p }}</a>
-    {% endfor %}
+    <div class="pagination">
+      {% if page > 1 %}
+        <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=page-1) }}">&laquo; Previous</a>
+      {% else %}
+        <a class="disabled">&laquo; Previous</a>
+      {% endif %}
 
-    {% if page < total_pages %}
-      <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=page+1) }}">Next &raquo;</a>
-    {% else %}
-      <a class="disabled">Next &raquo;</a>
-    {% endif %}
+      {% for p in range(1, total_pages + 1) %}
+        <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=p) }}"
+           class="{% if p == page %}active{% endif %}">{{ p }}</a>
+      {% endfor %}
+
+      {% if page < total_pages %}
+        <a href="{{ url_for('change_records', search=search_query, sort_by=sort_by, sort_order=sort_order, page=page+1) }}">Next &raquo;</a>
+      {% else %}
+        <a class="disabled">Next &raquo;</a>
+      {% endif %}
+    </div>
   </div>
 </body>
 </html>

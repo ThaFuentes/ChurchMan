@@ -1,170 +1,40 @@
 from flask import Flask, render_template, redirect, url_for, request, session, flash, abort
-import sqlite3
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from members_directory import members_bp  # Import the blueprint for members directory
 from donations import donations_bp  # Import the blueprint for donations
 from event import event_bp  # Import the blueprint for events
 from settings import settings_bp  # Import the blueprint for settings
+from auth import auth_bp  # Import the authentication blueprint
+from profile import profile_bp  # Import the blueprint for user profiles
+from sermons import sermons_bp  # Import the blueprint for sermon uploads
 from functools import wraps
 import random
 import string
 from flask_mail import Mail, Message
+from db_handler import get_db_connection
+from init_db import init_db
+from owner_exists import owner_exists
+from prayer import prayer_bp
+from dashboard import dashboard_bp  # Import the dashboard blueprint
+from dreams import dreams_bp  # Import the blueprint for dreams
+from prophecy import prophecy_bp  # Import the blueprint for prophecy
+from announcements import announcements_bp  # Import the announcements blueprint
+from web_email import web_email_bp  # Import the web_email blueprint
+from flask_login import LoginManager, current_user  # Import LoginManager
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-app.config['MAIL_SERVER'] = 'smtp.zoho.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_TLS'] = False  # Disable TLS since SSL is used
-app.config['MAIL_USE_SSL'] = True  # Enable SSL
-app.config['MAIL_USERNAME'] = ''
-app.config['MAIL_PASSWORD'] = ''
-app.config['MAIL_DEFAULT_SENDER'] = 'churchfreelymanagementsystem@zohomail.com'
-
-mail = Mail(app)  # Initialize the Mail object
-DATABASE = 'church_management.db'
-
-
-# Function to connect to the database
-def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
 # Initialize the database and create necessary tables
-def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
+init_db()
 
-    # Create users table if it doesn't exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            first_name TEXT NOT NULL,
-            last_name TEXT NOT NULL,
-            email TEXT UNIQUE,
-            phone TEXT,
-            address TEXT,
-            username TEXT UNIQUE,
-            password TEXT,
-            role TEXT NOT NULL,
-            accepts_emails BOOLEAN,
-            created_by INTEGER,
-            last_edited_by INTEGER
-        )
-    ''')
+# Check if an Owner exists (this may create side effects as needed)
+owner_exists()
 
-    # Create donations table if it doesn't exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS donations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            amount REAL NOT NULL,
-            date TEXT NOT NULL,
-            method TEXT NOT NULL,
-            notes TEXT
-        )
-    ''')
-
-    # Create change records table if it doesn't exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS change_records (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            action TEXT NOT NULL,
-            target_id INTEGER,
-            target_username TEXT,
-            change_details TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )
-    ''')
-
-    # Create events table if it doesn't exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            event_name TEXT NOT NULL,
-            event_date TEXT NOT NULL,
-            event_time TEXT NOT NULL,
-            location TEXT,
-            description TEXT,
-            speaker_host TEXT,
-            special_guests TEXT,
-            theme TEXT,
-            agenda TEXT,
-            registration_info TEXT,
-            cost_fees REAL,
-            contact_info TEXT,
-            childcare_availability TEXT,
-            accessibility TEXT,
-            promotional_materials TEXT,
-            volunteer_opportunities TEXT,
-            parking_info TEXT,
-            dress_code TEXT,
-            food_beverages TEXT,
-            event_sponsor TEXT,
-            social_media_hashtag TEXT,
-            donation_info TEXT,
-            safety_protocols TEXT,
-            follow_up TEXT,
-            event_coordinator TEXT,
-            announcements_reminders TEXT,
-            feedback_form TEXT,
-            live_streaming_details TEXT,
-            event_objectives TEXT
-        )
-    ''')
-
-    # Create settings table if it doesn't exist without inserting any default values
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS settings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            export_location TEXT,
-            sermon_folder_location TEXT,
-            church_name TEXT,
-            tax_status TEXT,
-            address TEXT,
-            phone_number TEXT,
-            pastor TEXT,
-            icon_path TEXT,
-            email_server TEXT,
-            email_port INTEGER,
-            smtp_server TEXT,
-            smtp_port INTEGER,
-            email_mode TEXT,
-            email_address TEXT,
-            email_password TEXT
-        )
-    ''')
-
-    # No insertion of default settings
-
-    conn.close()
-
-
-# Function to check if an Owner exists
-def owner_exists():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT COUNT(*) FROM users WHERE role = ?', ('Owner',))
-    count = cursor.fetchone()[0]
-    conn.close()
-    return count > 0
-
-
-# Function to log changes with detailed information
-def log_change(user_id, action, target_id=None, target_username=None, change_details=None):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO change_records (user_id, action, target_id, target_username, change_details)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (user_id, action, target_id, target_username, change_details))
-    conn.commit()
-    conn.close()
+# Initialize the LoginManager
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 
 # Role required decorator
@@ -181,10 +51,22 @@ def role_required(required_role):
     return decorator
 
 
+# User loader function for Flask-Login
+@login_manager.user_loader
+def load_user(user_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+
 @app.route('/')
 def index():
+    # Check if the owner exists and redirect accordingly
     if owner_exists():
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
     else:
         return redirect(url_for('setup'))
 
@@ -192,7 +74,7 @@ def index():
 @app.route('/setup', methods=['GET', 'POST'])
 def setup():
     if owner_exists():
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
         first_name = request.form['first_name']
@@ -238,131 +120,160 @@ def setup():
                    change_details='Created owner account.')
 
         flash('Owner account created successfully. Please log in.')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     return render_template('setup.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if not owner_exists():
-        return redirect(url_for('setup'))
-
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        # Automatically deny login if username or password is empty
-        if not username or not password:
-            flash('Invalid credentials. Please try again.')
-            return redirect(url_for('login'))
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
-        user = cursor.fetchone()
-        conn.close()
-
-        if user and check_password_hash(user[7], password):
-            session['user_id'] = user[0]
-            session['username'] = user[6]
-            session['user_role'] = user[8]  # Capture user role in session
-            # Log the login action
-            log_change(user_id=user[0], action='login', change_details='User logged in.')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid credentials. Please try again.')
-
-    return render_template('login.html')
-
-
-@app.route('/request-reset-password', methods=['GET', 'POST'])
-def request_reset_password():
-    if request.method == 'POST':
-        email = request.form['email']
-
-        # Check if the email exists in the database
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT id, username FROM users WHERE email = ?', (email,))
-        user = cursor.fetchone()
-
-        if user:
-            # Generate a 10-digit reset code
-            reset_code = ''.join(random.choices(string.digits, k=10))
-
-            # Hash the reset code before storing it as a password
-            hashed_reset_code = generate_password_hash(reset_code)
-
-            # Update the user's password in the database with the hashed reset code
-            cursor.execute('UPDATE users SET password = ? WHERE id = ?', (hashed_reset_code, user['id']))
-            conn.commit()
-            conn.close()
-
-            # Send an email with the reset code
-            msg = Message('Password Reset Request', recipients=[email])
-            msg.body = f'Your password has been reset. Use the following code to log in: {reset_code}\nPlease change your password after logging in.'
-            mail.send(msg)
-
-            flash('A reset code has been sent to your email.')
-            return redirect(url_for('login'))
-        else:
-            conn.close()
-            flash('Email address not found. Please check and try again.')
-            return redirect(url_for('request_reset_password'))
-
-    return render_template('request_reset_password.html')
-
-
-@app.route('/request-reset-password')
-def request_reset_page():
-    return render_template('request_reset_password.html')
-
-
-@app.route('/forgot-username', methods=['GET', 'POST'])
-def forgot_username():
-    if request.method == 'POST':
-        email = request.form['email']
-
-        # Check if the email exists in the database
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT username FROM users WHERE email = ?', (email,))
-        user = cursor.fetchone()
-        conn.close()
-
-        if user:
-            # Send an email with the username
-            msg = Message('Your Username', recipients=[email])
-            msg.body = f'Your username is: {user["username"]}'
-            mail.send(msg)
-
-            flash('Your username has been sent to your email.')
-        else:
-            flash('Email address not found. Please check and try again.')
-
-        return redirect(url_for('login'))  # Redirect to login after the email is sent
-
-    return render_template('forgot_username.html')
+def log_change(user_id, action, target_id=None, target_username=None, change_details=None):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO change_records (user_id, action, target_id, target_username, change_details)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (user_id, action, target_id, target_username, change_details))
+    conn.commit()
+    conn.close()
 
 
 @app.route('/dashboard')
-@role_required(['Admin', 'Owner'])
+@role_required(['Admin', 'Owner', 'Staff', 'Member'])
 def dashboard():
+    # Ensure user is logged in
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    # Get the user role
     cursor.execute('SELECT role FROM users WHERE id = ?', (session['user_id'],))
     role = cursor.fetchone()[0]
+
+    # Birthdays this month
+    cursor.execute("""
+        SELECT first_name, last_name, birthday
+        FROM users
+        WHERE show_birthday = 1
+          AND strftime('%m', birthday) = strftime('%m', 'now')
+        ORDER BY strftime('%d', birthday) ASC
+    """)
+    birthdays = cursor.fetchall()
+
+    # Upcoming birthdays in next 30 days
+    cursor.execute("""
+        SELECT first_name, last_name, birthday
+        FROM users
+        WHERE show_birthday = 1
+          AND strftime('%m-%d', birthday)
+            BETWEEN strftime('%m-%d', 'now')
+                AND strftime('%m-%d', 'now', '+30 days')
+        ORDER BY strftime('%m-%d', birthday) ASC
+    """)
+    birthdays_upcoming = cursor.fetchall()
+
+    # Upcoming Events
+    cursor.execute("""
+        SELECT event_name AS title,
+               event_date || ' ' || event_time AS datetime,
+               NULL              AS posted_by
+        FROM events
+        WHERE event_date >= DATE('now')
+        ORDER BY event_date ASC
+        LIMIT 5
+    """)
+    events = cursor.fetchall()
+
+    # Recent Prayer Requests
+    cursor.execute("""
+        SELECT title,
+               date_posted AS datetime,
+               NULL        AS posted_by
+        FROM prayers
+        ORDER BY date_posted DESC
+        LIMIT 5
+    """)
+    prayers = cursor.fetchall()
+
+    # Recent Dreams & Visions
+    cursor.execute("""
+        SELECT d.title,
+               d.date_posted AS datetime,
+               u.username    AS posted_by
+        FROM dreams d
+        LEFT JOIN users u ON d.user_id = u.id
+        ORDER BY d.date_posted DESC
+        LIMIT 5
+    """)
+    dreams = cursor.fetchall()
+
+    # Recent Prophecies
+    cursor.execute("""
+        SELECT p.title,
+               p.date_posted AS datetime,
+               u.username    AS posted_by
+        FROM prophecies p
+        LEFT JOIN users u ON p.user_id = u.id
+        ORDER BY p.date_posted DESC
+        LIMIT 5
+    """)
+    prophecies = cursor.fetchall()
+
+    # Recent Sermons
+    cursor.execute("""
+        SELECT s.title,
+               s.uploaded_at AS datetime,
+               u.username    AS posted_by
+        FROM sermons s
+        LEFT JOIN users u ON s.uploaded_by = u.id
+        ORDER BY s.uploaded_at DESC
+        LIMIT 5
+    """)
+    sermons = cursor.fetchall()
+
+    # Recent Announcements (no alias)
+    cursor.execute("""
+        SELECT a.title,
+               a.created_at,
+               u.username   AS posted_by
+        FROM announcements a
+        LEFT JOIN users u ON a.created_by = u.id
+        WHERE a.is_active = 1
+        ORDER BY a.created_at DESC
+        LIMIT 5
+    """)
+    announcements = cursor.fetchall()
+
     conn.close()
 
-    return render_template('dashboard.html', username=session['username'], role=role)
+    # — Inlined sparkle/sprinkle generation —
+    sparkles = []
+    for _ in range(20):
+        sparkles.append({
+            'left_pct': round(random.uniform(0, 100), 1),
+            'top_pct': round(random.uniform(0, 100), 1),
+            'size_px': random.randint(6, 16),
+            'delay_s': round(random.uniform(0, 2), 2),
+        })
+
+    return render_template(
+        'dashboard.html',
+        username=session['username'],
+        role=role,
+        birthdays=birthdays,
+        birthdays_upcoming=birthdays_upcoming,
+        events=events,
+        prayers=prayers,
+        dreams=dreams,
+        prophecies=prophecies,
+        sermons=sermons,
+        announcements=announcements,
+        sparkles=sparkles
+    )
 
 
 @app.route('/change-records')
-@role_required(['Owner'])
+@role_required(['Owner', 'Admin'])
 def change_records():
     search_query = request.args.get('search', '')
     sort_by = request.args.get('sort_by', 'timestamp')
@@ -386,7 +297,7 @@ def change_records():
         query += '''
             WHERE cr.user_id LIKE ? 
             OR u.username LIKE ? 
-            OR cr.action LIKE ?
+            OR cr.action LIKE ? 
             OR cr.target_id LIKE ? 
             OR cr.target_username LIKE ? 
             OR cr.change_details LIKE ? 
@@ -424,7 +335,6 @@ def change_records():
     )
 
 
-# Route to delete an individual record
 @app.route('/delete-record/<int:id>', methods=['POST'])
 @role_required(['Owner'])
 def delete_record(id):
@@ -463,7 +373,6 @@ def delete_all_records():
     return redirect(url_for('change_records'))
 
 
-# Route to confirm deletion of all records
 @app.route('/confirm-delete-all-records', methods=['GET', 'POST'])
 @role_required(['Owner'])
 def confirm_delete_all_records():
@@ -486,26 +395,15 @@ def confirm_delete_all_records():
     return render_template('confirm_delete_all_records.html')
 
 
-@app.route('/logout')
-def logout():
-    user_id = session.get('user_id')
-    if user_id:
-        # Log the logout action
-        log_change(user_id=user_id, action='logout', change_details='User logged out.')
-    session.clear()
-    return redirect(url_for('login'))
-
-
-# Function to clear all tables in the database
 def clear_all_tables():
     conn = get_db_connection()
     cursor = conn.cursor()
 
     # Clear each table
     cursor.execute('DELETE FROM change_records')
-    #    cursor.execute('DELETE FROM donations')
+    # cursor.execute('DELETE FROM donations')
     cursor.execute('DELETE FROM events')
-    #    cursor.execute('DELETE FROM users')
+    # cursor.execute('DELETE FROM users')
     cursor.execute('DELETE FROM settings')
 
     conn.commit()
@@ -517,11 +415,22 @@ def clear_all_tables():
 # Uncomment the line below to clear all tables when running the script
 # clear_all_tables()
 
-# Register the blueprints
-app.register_blueprint(members_bp, url_prefix='/members')  # Registering the members directory blueprint
-app.register_blueprint(donations_bp, url_prefix='/donations')  # Registering the donations blueprint
-app.register_blueprint(event_bp, url_prefix='/events')  # Registering the events blueprint
-app.register_blueprint(settings_bp, url_prefix='/settings')  # Registering the settings blueprint
+# Register the blueprints. Note that auth_bp is registered with the URL prefix '/auth',
+# so its routes (login, logout, request-reset-password, forgot-username) will be accessible under /auth.
+login_manager.login_view = "auth.login"  # Specify the login route here
+app.register_blueprint(prayer_bp, url_prefix='/prayers')
+app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(profile_bp, url_prefix='/profile')
+app.register_blueprint(members_bp, url_prefix='/members')
+app.register_blueprint(donations_bp, url_prefix='/donations')
+app.register_blueprint(event_bp, url_prefix='/events')
+app.register_blueprint(settings_bp, url_prefix='/settings')
+app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+app.register_blueprint(sermons_bp, url_prefix='/sermons')
+app.register_blueprint(dreams_bp, url_prefix='/dreams')
+app.register_blueprint(prophecy_bp, url_prefix='/prophecies')
+app.register_blueprint(announcements_bp, url_prefix='/announcements')
+app.register_blueprint(web_email_bp, url_prefix='/email')  # You can optionally set a URL prefix
 
 if __name__ == '__main__':
     init_db()  # Initialize the database and create tables if they don't exist

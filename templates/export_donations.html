@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Export Donations</title>
+  <style>
+    /* Your existing CSS */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #e0e0e0;
+      background-image: url('{{ url_for("static", filename="images/donations.png") }}');
+      background-size: cover;
+      background-position: center center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 0;
+    }
+    .header { position: relative; background-color: rgba(0,0,0,0.8); padding:20px; text-align:center; border-bottom:2px solid #00FFFF; }
+    .header h1 { margin:0; color:#00FFFF; font-size:2em; }
+    .menu { display:flex; justify-content:space-around; padding:10px; background-color:#333; border-bottom:2px solid #00FFFF; }
+    .menu a { text-decoration:none; padding:10px 20px; background-color:#00FFFF; color:#000; border-radius:5px; }
+    .menu a.active { background-color:#00CCCC; }
+    .export-section { padding:20px; background-color: rgba(0,0,0,0.7); margin:20px; border-radius:8px; }
+    .export-section h2 { color:#00FFFF; margin-top:0; }
+    .export-section form { display:flex; flex-direction:column; }
+    .export-section label { margin:10px 0 5px; color:#e0e0e0; }
+    .export-section select, .export-section input[type="text"] {
+      padding:10px; border-radius:5px; border:1px solid #00FFFF; background:#222; color:#fff;
+    }
+    .export-section button {
+      margin-top:15px; padding:10px 20px; background:#00FFFF; color:#000; border:none; border-radius:5px; cursor:pointer;
+      width:200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Export Donations Records</h1>
+  </div>
+  <div class="menu">
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('donations.view_all_members') }}">Members</a>
+    <a href="{{ url_for('donations.view_all_donations') }}">Donations</a>
+    <a class="active" href="{{ url_for('donations.export_page') }}">Export</a>
+    <a href="{{ url_for('donations.reports') }}">Reports</a>
+    <a href="{{ url_for('donations.view_non_member_donations') }}">Non-Member Donations</a>
+    <a href="{{ url_for('donations.add_user') }}">Add User</a>
+    <a href="{{ url_for('donations.church_info') }}">Church Info</a>
+  </div>
+
+  <div class="export-section" id="individual-export">
+    <h2>Export Individual Records</h2>
+    <form method="POST" action="{{ url_for('donations.export_individual') }}">
+      <label for="year-ind">Select Year:</label>
+      <select name="year" id="year-ind">
+        <!-- populated via JS -->
+      </select>
+
+      <label>Select Member(s):</label>
+      <div style="max-height:200px; overflow:auto; border:1px solid #00FFFF; padding:10px; background:#222;">
+        <ul id="ind-member-list" style="list-style:none; margin:0; padding:0;"></ul>
+      </div>
+
+      <label for="save-loc-ind">Save Location:</label>
+      <input type="text" id="save-loc-ind" name="save_location" placeholder="Leave blank for default" readonly>
+
+      <button type="submit">Export Individual</button>
+    </form>
+  </div>
+
+  <div class="export-section" id="yearly-export">
+    <h2>Export Yearly Members Record</h2>
+    <form method="POST" action="{{ url_for('donations.export_donations') }}">
+      <label for="year-yr">Select Year:</label>
+      <select name="year" id="year-yr">
+        <!-- populated via JS -->
+      </select>
+
+      <label for="save-loc-yr">Save Location:</label>
+      <input type="text" id="save-loc-yr" name="save_location" placeholder="Leave blank for default" readonly>
+
+      <button type="submit">Export Yearly</button>
+    </form>
+  </div>
+
+  <script>
+    // Populate year dropdowns
+    fetch("{{ url_for('donations.get_years') }}")
+      .then(r => r.json())
+      .then(years => {
+        const ind = document.getElementById('year-ind');
+        const yr  = document.getElementById('year-yr');
+        years.forEach(y => {
+          ind.insertAdjacentHTML('beforeend', `<option>${y}</option>`);
+          yr .insertAdjacentHTML('beforeend', `<option>${y}</option>`);
+        });
+        ind.value = yr.value = new Date().getFullYear();
+        loadMembers(ind.value);
+      });
+
+    document.getElementById('year-ind').addEventListener('change', e => loadMembers(e.target.value));
+
+    function loadMembers(year) {
+      fetch(`{{ url_for('donations.fetch_members_with_donations') }}?year=${year}`)
+        .then(r => r.json())
+        .then(members => {
+          const list = document.getElementById('ind-member-list');
+          list.innerHTML = members.length
+            ? members.map(m => `<li><label><input type="checkbox" name="selected_members" value="${m.id}"> ${m.first_name} ${m.last_name}</label></li>`).join('')
+            : '<li>No donations found for this year.</li>';
+        });
+    }
+  </script>
+</body>
+</html>

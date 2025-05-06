@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sermons</title>
+  <style>
+    /* Base Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #000;
+      color: #e0e0e0;
+      background-image: url('{{ url_for("static", filename="images/sermons.png") }}');
+      background-size: cover;
+      background-position: center center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Flash Messages */
+    .flash {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .flash.error   { background-color: #661111; color: #fdd; }
+    .flash.success { background-color: #116611; color: #dfd; }
+
+    /* Header */
+    .header {
+      position: relative;
+      padding: 20px;
+      text-align: center;
+      background-color: rgba(0, 0, 0, 0.8);
+      border-bottom: 2px solid #00FFFF;
+    }
+    .header h1 { margin: 0; color: #00FFFF; font-size: 2em; }
+    .header a {
+      position: absolute; top: 20px;
+      background-color: #00FFFF; color: #000;
+      padding: 8px 16px; border-radius: 4px;
+      font-weight: bold; text-decoration: none;
+    }
+    .header .back-button { left: 20px; }
+    .header .add-sermon-button { right: 20px; }
+
+    /* Search */
+    .search-container {
+      padding: 10px 20px;
+      background-color: rgba(0,0,0,0.7);
+      border-bottom: 1px solid #00FFFF;
+      text-align: center;
+    }
+    #searchBox {
+      width: 100%; max-width: 600px;
+      padding: 12px 16px;
+      border: 1px solid #00FFFF;
+      border-radius: 4px;
+      font-size: 1.2em;
+      background-color: #000;
+      color: #e0e0e0;
+    }
+
+    /* Sermons List */
+    .sermons-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px auto;
+      max-width: 900px;
+    }
+    .sermons-list li {
+      background-color: rgba(0, 0, 0, 0.8);
+      margin-bottom: 20px;
+      border: 1px solid #00FFFF;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .sermons-list h3 {
+      margin-top: 0;
+      color: #00FFFF;
+      cursor: pointer;
+    }
+
+    /* Sermon Details */
+    .sermon-details {
+      margin-top: 12px;
+    }
+    .notes-content {
+      background-color: #111;
+      color: #eee;
+      padding: 15px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border: 1px solid #00FFFF;
+    }
+
+    /* Comments Section */
+    .comments-section {
+      background-color: #111;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #00FFFF;
+    }
+    .comments-section h4 {
+      margin-top: 0;
+      color: #00FFFF;
+    }
+    .comment {
+      background-color: #222;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .comment-author {
+      font-weight: bold;
+      color: #0ff;
+    }
+    .comment-date {
+      font-size: 0.8em;
+      color: #888;
+      margin-left: 8px;
+    }
+    .comment-text {
+      margin: 8px 0;
+    }
+    .comment-actions {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 0.8em;
+      border-radius: 4px;
+      text-decoration: none;
+      margin-left: 4px;
+      color: #000;
+    }
+    .btn-edit-small { background-color: #0af; }
+    .btn-delete-small { background-color: #f44; border: none; cursor: pointer; }
+
+    /* Add Comment Form */
+    .add-comment textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #00FFFF;
+      border-radius: 4px;
+      background-color: #000;
+      color: #e0e0e0;
+      margin-bottom: 8px;
+    }
+    .add-comment button {
+      background-color: #0af;
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+    }
+
+    /* Editing comment */
+    .edit-comment textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #00FFFF;
+      border-radius: 4px;
+      background-color: #111;
+      color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 { font-size: 1.5em; }
+      .header a { font-size: 0.8em; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <a href="{{ url_for('dashboard') }}" class="back-button">Back To Dashboard</a>
+    <h1>Sermons</h1>
+    <a href="{{ url_for('sermons.upload_sermon') }}" class="add-sermon-button">+ Add Sermon</a>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash {{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- Search -->
+  <div class="search-container">
+    <input id="searchBox" placeholder="Search sermons by title, author, etc." autocomplete="off" />
+  </div>
+
+  <!-- Sermons List -->
+  <ul class="sermons-list">
+    {% for s in sermons %}
+      <li>
+        <h3 onclick="toggleDetails('details-{{ s.id }}')">{{ s.title }} <small>by {{ s.author }}</small></h3>
+        <div id="details-{{ s.id }}" class="sermon-details" style="display: none;">
+
+          <!-- Notes -->
+          {% if s.notes_content %}
+            <div class="notes-content">{{ s.notes_content }}</div>
+          {% endif %}
+
+          <!-- Comments -->
+          <div class="comments-section">
+            <h4>Comments</h4>
+            {% if s.comments %}
+              {% for c in s.comments %}
+                <div class="comment">
+                  <span class="comment-author">{{ c.commenter }}</span>
+                  <span class="comment-date">{{ c.date_added }}</span>
+                  <div id="comment-text-{{ c.id }}" class="comment-text">
+                    {{ c.comment }}
+                  </div>
+
+                  <!-- Edit Form (Initially Hidden) -->
+                  <div id="edit-comment-form-{{ c.id }}" class="edit-comment" style="display:none;">
+                    <form action="{{ url_for('sermons.update_comment', sermon_id=s.id, comment_id=c.id) }}" method="POST">
+                      <textarea name="comment">{{ c.comment }}</textarea>
+                      <button type="submit">Save Changes</button>
+                    </form>
+                  </div>
+
+                  <div class="comment-actions">
+                    {% set role = session.get('role') %}
+                    {% if session['user_id'] == c.user_id %}
+                      <!-- Show Edit Button for the Comment Owner -->
+                      <a href="javascript:void(0);" onclick="toggleEditMode({{ c.id }})" class="btn-small btn-edit-small">Edit</a>
+                      <form action="{{ url_for('sermons.delete_comment', sermon_id=s.id, comment_id=c.id) }}" method="POST" style="display:inline;">
+                        <button class="btn-small btn-delete-small" onclick="return confirm('Delete this comment?');">Delete</button>
+                      </form>
+                    {% elif role == 'admin' %}
+                      <!-- Admin can delete any comment -->
+                      <form action="{{ url_for('sermons.delete_comment', sermon_id=s.id, comment_id=c.id) }}" method="POST" style="display:inline;">
+                        <button class="btn-small btn-delete-small" onclick="return confirm('Delete this comment?');">Delete</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p style="color: #888;">No comments yet.</p>
+            {% endif %}
+
+            <!-- Add Comment Form -->
+            <form class="add-comment" action="{{ url_for('sermons.add_comment', sermon_id=s.id) }}" method="POST">
+              <textarea name="comment" required placeholder="Write a comment..."></textarea>
+              <button type="submit">Add Comment</button>
+            </form>
+          </div>
+
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <script>
+    function toggleDetails(id) {
+      const el = document.getElementById(id);
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleEditMode(commentId) {
+      const commentText = document.getElementById(`comment-text-${commentId}`);
+      const editForm = document.getElementById(`edit-comment-form-${commentId}`);
+
+      // Toggle visibility of comment text and the edit form
+      if (commentText.style.display === 'none') {
+        commentText.style.display = 'block';  // Show comment text
+        editForm.style.display = 'none';      // Hide edit form
+      } else {
+        commentText.style.display = 'none';   // Hide comment text
+        editForm.style.display = 'block';     // Show edit form
+      }
+    }
+  </script>
+
+</body>
+</html>
