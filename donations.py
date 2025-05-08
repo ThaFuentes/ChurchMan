@@ -3,6 +3,9 @@ import sqlite3
 from functools import wraps
 from docx import Document
 import os
+import calendar
+from flask import jsonify
+import datetime
 
 # Create a Blueprint for the donations section
 donations_bp = Blueprint('donations', __name__, template_folder='templates')
@@ -364,19 +367,81 @@ def export_donations():
     return render_template('export_donations.html')
 
 
-@donations_bp.route('/reports')
+@donations_bp.route('/reports', methods=['GET', 'POST'])
 @role_required(['Admin', 'Owner'])
 def reports():
     user_id = session.get('user_id')
     if not user_id:
         return redirect(url_for('login'))
 
-    flash("This feature is not yet implemented.")
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-    # Log the attempt to access the feature
-    log_change(user_id=user_id, action='view', change_details='Attempted to view reports')
+    # Fetch distinct years from the donations table
+    cursor.execute('''
+        SELECT DISTINCT strftime('%Y', date) as year
+        FROM donations
+        ORDER BY year DESC
+    ''')
+    years = cursor.fetchall()
 
-    return redirect(url_for('donations.donations_dashboard'))
+    # Fetch the most recent year (default year)
+    latest_year = years[0]['year'] if years else str(
+        datetime.datetime.now().year)  # Default to current year if no years in DB
+
+    # Get the selected year and month from the request (default to most recent year if not provided)
+    year = request.args.get('year', latest_year)
+    month = request.args.get('month', None)
+
+    donations = []
+    totals = None
+    donation_types = {}
+
+    if year:
+        # Format month as two digits (e.g., 04 for April)
+        if month:
+            month = month.zfill(2)  # Ensure two digits for month (e.g., '4' becomes '04')
+            cursor.execute('''
+                SELECT name, amount, date, method, notes
+                FROM donations
+                WHERE strftime('%Y', date) = ? AND strftime('%m', date) = ?
+                ORDER BY date DESC
+            ''', (year, month))
+        else:
+            # If no month is selected, fetch donations for the entire year
+            cursor.execute('''
+                SELECT name, amount, date, method, notes
+                FROM donations
+                WHERE strftime('%Y', date) = ?
+                ORDER BY date DESC
+            ''', (year,))
+
+        donations = cursor.fetchall()
+
+        # If donations exist, calculate totals and breakdown by donation type
+        if donations:
+            # Calculate totals (sum of donations and count)
+            cursor.execute('''
+                SELECT SUM(amount) as total_amount, COUNT(*) as total_count
+                FROM donations
+                WHERE strftime('%Y', date) = ? AND (? IS NULL OR strftime('%m', date) = ?)
+            ''', (year, month, month))
+            totals = cursor.fetchone()
+
+            # Get breakdown by donation type (method)
+            cursor.execute('''
+                SELECT method, SUM(amount) as total_amount, COUNT(*) as total_count
+                FROM donations
+                WHERE strftime('%Y', date) = ? AND (? IS NULL OR strftime('%m', date) = ?)
+                GROUP BY method
+                ORDER BY total_amount DESC
+            ''', (year, month, month))
+            donation_types = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('reports.html', years=years, donations=donations, selected_year=year, selected_month=month,
+                           totals=totals, donation_types=donation_types)
 
 
 @donations_bp.route('/view_non_member_donations')
