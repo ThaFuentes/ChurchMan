@@ -1,182 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Donation Reports</title>
   <style>
+    /* Global page styles */
     body {
       font-family: Arial, sans-serif;
-      background-color: #000;
+      background: #000 url('{{ url_for("static", filename="images/donations.png") }}') center/cover fixed;
       color: #e0e0e0;
-      background-image: url('{{ url_for('static', filename='images/donations.png') }}');
-      background-size: cover;
-      background-position: center center;
-      background-attachment: fixed;
       margin: 0;
       padding: 0;
     }
-
+    /* Header */
     .header {
-      position: relative;
-      background-color: rgba(0, 0, 0, 0.8);
+      background: rgba(0,0,0,0.8);
       padding: 20px;
       text-align: center;
       border-bottom: 2px solid #00FFFF;
     }
-
     .header h1 {
-      margin: 0;
       color: #00FFFF;
+      margin: 0;
       font-size: 2em;
     }
-
+    /* Navigation menu */
     .menu {
       display: flex;
       justify-content: space-around;
-      padding: 10px;
-      background-color: #333;
+      background: #333;
       border-bottom: 2px solid #00FFFF;
+      padding: 10px;
     }
-
     .menu a {
       text-decoration: none;
-      padding: 10px 20px;
-      background-color: #00FFFF;
+      background: #00FFFF;
       color: #000;
+      padding: 10px 20px;
       border-radius: 5px;
     }
-
     .menu a.active {
-      background-color: #00CCCC;
+      background: #00CCCC;
     }
-
+    /* Filter section */
     .filter-section {
-      padding: 20px;
-      background-color: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.7);
       margin: 20px;
+      padding: 20px;
       border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      text-align: center;
     }
-
-    .filter-section select, .filter-section input {
+    .filter-section select,
+    .filter-section button {
       padding: 10px;
+      margin: 10px;
       border-radius: 5px;
       border: 1px solid #00FFFF;
-      background: #222;
-      color: #fff;
-      margin: 10px 0;
     }
-
     .filter-section button {
-      padding: 10px 20px;
       background: #00FFFF;
       color: #000;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
     }
-
+    /* Report section */
     .report-section {
-      padding: 20px;
-      background-color: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.7);
       margin: 20px;
+      padding: 20px;
       border-radius: 8px;
     }
-
+    /* Tables */
     .donations-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
     }
-
-    .donations-table th, .donations-table td {
-      padding: 10px;
+    .donations-table th,
+    .donations-table td {
       border: 1px solid #00FFFF;
+      padding: 10px;
       text-align: left;
     }
-
     .donations-table th {
-      background-color: #333;
+      background: #333;
       color: #00FFFF;
     }
-
     .donations-table td {
-      background-color: #222;
-      color: #e0e0e0;
+      background: #222;
     }
-
-    canvas {
-      background-color: #222;
-    }
-
-    .totals, .donation-types {
-      margin-top: 20px;
-      padding: 10px;
-      background-color: rgba(0,0,0,0.7);
-      color: #00FFFF;
+    /* Totals and breakdown */
+    .totals,
+    .donation-types {
+      background: rgba(0,0,0,0.7);
+      margin: 20px;
+      padding: 20px;
       border-radius: 8px;
+      color: #00FFFF;
     }
   </style>
 </head>
 <body>
+  <!-- Header -->
   <div class="header">
     <h1>Donation Reports</h1>
   </div>
 
-  <!-- Menu Section -->
+  <!-- Navigation -->
   <div class="menu">
     <a href="{{ url_for('dashboard') }}">Dashboard</a>
-    <a href="{{ url_for('donations.view_all_members') }}">View All Members</a>
-    <a href="{{ url_for('donations.view_all_donations') }}">View All Donations</a>
-    <a href="{{ url_for('donations.export_page') }}">Export Donations Records</a>
+    <a href="{{ url_for('donations.view_all_members') }}">All Members</a>
+    <a href="{{ url_for('donations.view_all_donations') }}">All Donations</a>
     <a class="active" href="{{ url_for('donations.reports') }}">Reports</a>
-    <a href="{{ url_for('donations.view_non_member_donations') }}">View All Non-Member Donations</a>
     <a href="{{ url_for('donations.add_user') }}">Add User</a>
-    <a href="{{ url_for('donations.church_info') }}">Church Information</a>
+    <a href="{{ url_for('donations.church_info') }}">Church Info</a>
   </div>
 
-  <!-- Filter Section (Dropdown for Year and Month Selection) -->
+  <!-- Filter -->
   <div class="filter-section">
-    <h2>Select Year and Month</h2>
+    <h2>Select Year and (Optional) Month</h2>
     <form method="GET" action="{{ url_for('donations.reports') }}">
-      <label for="year-select">Select Year:</label>
-      <select id="year-select" name="year">
-        <option value="">Select Year</option>
-        {% for year in years %}
-          <option value="{{ year.year }}" {% if year.year == selected_year %}selected{% endif %}>{{ year.year }}</option>
+      <select name="year" id="year-select">
+        <option value="">-- Select Year --</option>
+        {% for y in years %}
+        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
         {% endfor %}
       </select>
 
-      <!-- Month Dropdown (Visible if Year is selected) -->
-      <label for="month-select">Select Month:</label>
-      <select id="month-select" name="month" {% if selected_year %}enabled{% else %}disabled{% endif %}>
-        <option value="">Select Month</option>
-        <option value="01" {% if selected_month == '01' %}selected{% endif %}>January</option>
-        <option value="02" {% if selected_month == '02' %}selected{% endif %}>February</option>
-        <option value="03" {% if selected_month == '03' %}selected{% endif %}>March</option>
-        <option value="04" {% if selected_month == '04' %}selected{% endif %}>April</option>
-        <option value="05" {% if selected_month == '05' %}selected{% endif %}>May</option>
-        <option value="06" {% if selected_month == '06' %}selected{% endif %}>June</option>
-        <option value="07" {% if selected_month == '07' %}selected{% endif %}>July</option>
-        <option value="08" {% if selected_month == '08' %}selected{% endif %}>August</option>
-        <option value="09" {% if selected_month == '09' %}selected{% endif %}>September</option>
-        <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
-        <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
-        <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
+      <select name="month" id="month-select" {% if not selected_year %}disabled{% endif %}>
+        <option value="">-- All Months --</option>
+        {% for i in range(1,13) %}
+        {% set m = "%02d"|format(i) %}
+        <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>
+          {{ ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i-1] }}
+        </option>
+        {% endfor %}
       </select>
 
       <button type="submit">Generate Report</button>
     </form>
   </div>
 
-  <!-- Report Section (Donation Data for the Selected Year and Month) -->
-  <div class="report-section" id="report-results">
-    <h2>Donation Data for Year: {{ selected_year }} {% if selected_month %}and Month: {{ selected_month }}{% endif %}</h2>
+  <!-- Report -->
+  <div class="report-section">
+    <h2>Donation Data for {{ selected_year }}
+      {% if selected_month %} — {{ selected_month }}{% endif %}
+    </h2>
 
-    <!-- Table for Donations Data -->
+    <!-- Donations Table -->
     <table class="donations-table">
       <thead>
         <tr>
@@ -188,50 +160,80 @@
         </tr>
       </thead>
       <tbody>
-        {% for donation in donations %}
+        {% if donations %}
+          {% for d in donations %}
+          <tr>
+            <td>{{ d.name }}</td>
+            <td>${{ d.amount }}</td>
+            <td>{{ d.date }}</td>
+            <td>{{ d.method }}</td>
+            <td>{{ d.notes }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="5" style="text-align:center">No donations found.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Overall Totals -->
+  <div class="totals">
+    <h3>Overall Totals</h3>
+    <p><strong>Total Donations:</strong> ${{ total_amount }}</p>
+    <p><strong>Total Donors:</strong> {{ total_count }}</p>
+  </div>
+
+  <!-- Monthly Breakdown (only when no month selected) -->
+  {% if not selected_month %}
+  <div class="totals">
+    <h3>Monthly Breakdown for {{ selected_year }}</h3>
+    <table class="donations-table">
+      <thead>
         <tr>
-          <td>{{ donation.name }}</td>
-          <td>${{ donation.amount }}</td>
-          <td>{{ donation.date }}</td>
-          <td>{{ donation.method }}</td>
-          <td>{{ donation.notes }}</td>
+          <th>Month</th>
+          <th>Total Donations</th>
+          <th>Total Donors</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in monthly_totals %}
+        <tr>
+          <td>{{ m.month }}</td>
+          <td>${{ m.total_amount }}</td>
+          <td>{{ m.total_count }}</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+  </div>
+  {% endif %}
 
-    <!-- Totals Section -->
-    {% if totals %}
-    <div class="totals">
-      <p><strong>Total Donations: </strong>${{ totals.total_amount }}</p>
-      <p><strong>Total Donors: </strong>{{ totals.total_count }}</p>
-    </div>
-    {% endif %}
-
-    <!-- Donation Types Breakdown -->
-    {% if donation_types %}
-    <div class="donation-types">
-      <h3>Donation Type Breakdown</h3>
-      <table class="donations-table">
-        <thead>
+  <!-- Donation Type Breakdown -->
+  <div class="donation-types">
+    <h3>Donation Type Breakdown</h3>
+    <table class="donations-table">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if donation_types %}
+          {% for t in donation_types %}
           <tr>
-            <th>Donation Type</th>
-            <th>Total Amount</th>
-            <th>Total Donations</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for donation_type in donation_types %}
-          <tr>
-            <td>{{ donation_type.method }}</td>
-            <td>${{ donation_type.total_amount }}</td>
-            <td>{{ donation_type.total_count }}</td>
+            <td>{{ t.method }}</td>
+            <td>${{ t.total_amount }}</td>
+            <td>{{ t.total_count }}</td>
           </tr>
           {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% endif %}
+        {% else %}
+          <tr><td colspan="3" style="text-align:center">No breakdown available.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
   </div>
 </body>
 </html>

@@ -367,7 +367,7 @@ def export_donations():
     return render_template('export_donations.html')
 
 
-@donations_bp.route('/reports', methods=['GET', 'POST'])
+@donations_bp.route('/reports', methods=['GET'])
 @role_required(['Admin', 'Owner'])
 def reports():
     user_id = session.get('user_id')
@@ -377,71 +377,101 @@ def reports():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Fetch distinct years from the donations table
-    cursor.execute('''
-        SELECT DISTINCT strftime('%Y', date) as year
+    # 1. Fetch available years
+    cursor.execute("""
+        SELECT DISTINCT strftime('%Y', date) AS year
         FROM donations
         ORDER BY year DESC
-    ''')
-    years = cursor.fetchall()
+    """)
+    years = [row['year'] for row in cursor.fetchall()]
 
-    # Fetch the most recent year (default year)
-    latest_year = years[0]['year'] if years else str(
-        datetime.datetime.now().year)  # Default to current year if no years in DB
-
-    # Get the selected year and month from the request (default to most recent year if not provided)
+    # 2. Determine selected year & month
+    latest_year = years[0] if years else str(datetime.datetime.now().year)
     year = request.args.get('year', latest_year)
-    month = request.args.get('month', None)
+    month = request.args.get('month')  # None or 'MM'
 
-    donations = []
-    totals = None
-    donation_types = {}
+    # 3. Fetch donations for this year (and month, if provided)
+    params = [year]
+    sql = """
+        SELECT name, amount, date, method, notes
+        FROM donations
+        WHERE strftime('%Y', date) = ?
+    """
+    if month:
+        sql += " AND strftime('%m', date) = ?"
+        params.append(month.zfill(2))
+    sql += " ORDER BY date DESC"
+    cursor.execute(sql, params)
+    donations = cursor.fetchall()
 
-    if year:
-        # Format month as two digits (e.g., 04 for April)
-        if month:
-            month = month.zfill(2)  # Ensure two digits for month (e.g., '4' becomes '04')
-            cursor.execute('''
-                SELECT name, amount, date, method, notes
+    # 4. Calculate overall totals (year or year+month)
+    params = [year, None, None]
+    totals_sql = """
+        SELECT
+          COALESCE(SUM(amount), 0)   AS total_amount,
+          COALESCE(COUNT(*), 0)      AS total_count
+        FROM donations
+        WHERE strftime('%Y', date) = ?
+          AND (? IS NULL OR strftime('%m', date) = ?)
+    """
+    if month:
+        params[1:] = [month.zfill(2), month.zfill(2)]
+    cursor.execute(totals_sql, params)
+    total_row = cursor.fetchone()
+    total_amount = total_row['total_amount']
+    total_count  = total_row['total_count']
+
+    # 5. Breakdown by donation type
+    params = [year, None, None]
+    types_sql = """
+        SELECT 
+          method,
+          COALESCE(SUM(amount), 0) AS total_amount,
+          COALESCE(COUNT(*), 0)    AS total_count
+        FROM donations
+        WHERE strftime('%Y', date) = ?
+          AND (? IS NULL OR strftime('%m', date) = ?)
+        GROUP BY method
+        ORDER BY total_amount DESC
+    """
+    if month:
+        params[1:] = [month.zfill(2), month.zfill(2)]
+    cursor.execute(types_sql, params)
+    donation_types = cursor.fetchall()
+
+    # 6. Monthly breakdown (only if no single month selected)
+    monthly_totals = []
+    if not month:
+        for m in range(1, 13):
+            m_str = f"{m:02d}"
+            cursor.execute("""
+                SELECT
+                  COALESCE(SUM(amount), 0) AS total_amount,
+                  COALESCE(COUNT(*), 0)    AS total_count
                 FROM donations
-                WHERE strftime('%Y', date) = ? AND strftime('%m', date) = ?
-                ORDER BY date DESC
-            ''', (year, month))
-        else:
-            # If no month is selected, fetch donations for the entire year
-            cursor.execute('''
-                SELECT name, amount, date, method, notes
-                FROM donations
-                WHERE strftime('%Y', date) = ?
-                ORDER BY date DESC
-            ''', (year,))
-
-        donations = cursor.fetchall()
-
-        # If donations exist, calculate totals and breakdown by donation type
-        if donations:
-            # Calculate totals (sum of donations and count)
-            cursor.execute('''
-                SELECT SUM(amount) as total_amount, COUNT(*) as total_count
-                FROM donations
-                WHERE strftime('%Y', date) = ? AND (? IS NULL OR strftime('%m', date) = ?)
-            ''', (year, month, month))
-            totals = cursor.fetchone()
-
-            # Get breakdown by donation type (method)
-            cursor.execute('''
-                SELECT method, SUM(amount) as total_amount, COUNT(*) as total_count
-                FROM donations
-                WHERE strftime('%Y', date) = ? AND (? IS NULL OR strftime('%m', date) = ?)
-                GROUP BY method
-                ORDER BY total_amount DESC
-            ''', (year, month, month))
-            donation_types = cursor.fetchall()
+                WHERE strftime('%Y', date)=? AND strftime('%m', date)=?
+            """, (year, m_str))
+            row = cursor.fetchone()
+            monthly_totals.append({
+                'month': m_str,
+                'total_amount': row['total_amount'],
+                'total_count': row['total_count'],
+            })
 
     conn.close()
 
-    return render_template('reports.html', years=years, donations=donations, selected_year=year, selected_month=month,
-                           totals=totals, donation_types=donation_types)
+    return render_template(
+      'reports.html',
+      years=years,
+      donations=donations,
+      selected_year=year,
+      selected_month=month,
+      total_amount=total_amount,
+      total_count=total_count,
+      donation_types=donation_types,
+      monthly_totals=monthly_totals
+    )
+
 
 
 @donations_bp.route('/view_non_member_donations')
