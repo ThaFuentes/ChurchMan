@@ -3,7 +3,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from cryptography.fernet import Fernet
-from flask import Blueprint, request, flash, render_template
+from flask import Blueprint, request, flash, render_template, session
 from db_handler import get_db_connection
 
 # ——— KEY MANAGEMENT ———
@@ -22,24 +22,21 @@ else:
 
 cipher = Fernet(key)
 
+
 def decrypt_value(token: str) -> str:
-    """Decrypt token when using it (returns empty string on failure)."""
     if not token:
         return ''
     try:
         return cipher.decrypt(token.encode()).decode().strip()
-    except Exception as e:
-        # Optional: log error internally, no user flash
+    except Exception:
         return ''
 
+
 # ——— Blueprint Setup ———
-web_email_bp = Blueprint('email', __name__, template_folder='templates')
+emailer_bp = Blueprint('emailer', __name__, template_folder='templates')
+
 
 def get_email_settings():
-    """
-    Fetch SMTP settings from the settings table,
-    return raw encrypted username and password as stored.
-    """
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -66,20 +63,15 @@ def get_email_settings():
 
     return host, port, user_encrypted, pw_encrypted
 
-def send_email(to_email: str, subject: str, body: str):
-    """Send email using decrypted credentials from DB."""
-    host, port, user_enc, pw_enc = get_email_settings()
 
-    # Decrypt username and password here
+def send_email(to_email: str, subject: str, body: str):
+    host, port, user_enc, pw_enc = get_email_settings()
     user = decrypt_value(user_enc)
     pw = decrypt_value(pw_enc)
 
     if not user or not pw:
         raise ValueError("Failed to decrypt SMTP credentials.")
 
-    # NO FLASHING USERNAME OR PASSWORD HERE — SECURITY!
-
-    # Establish SMTP connection and send email
     if port == 465:
         server = smtplib.SMTP_SSL(host, port)
     else:
@@ -99,7 +91,9 @@ def send_email(to_email: str, subject: str, body: str):
     server.sendmail(user, to_email, msg.as_string())
     server.quit()
 
-@web_email_bp.route('/send-email', methods=['GET', 'POST'])
+
+# Your existing Flask route to send email via form
+@emailer_bp.route('/send-email', methods=['GET', 'POST'])
 def send_email_route():
     to_email = ''
     subject = ''
@@ -116,8 +110,6 @@ def send_email_route():
             try:
                 send_email(to_email, subject, body)
                 flash("Email sent successfully!", "success")
-
-                # Clear fields after successful send
                 to_email = subject = body = ''
             except Exception as e:
                 flash(f"Failed to send email: {e}", "error")
@@ -126,3 +118,18 @@ def send_email_route():
                            to_email=to_email,
                            subject=subject,
                            body=body)
+
+
+# Additional helper functions for automated emails below:
+
+def email_password_updated(user_email: str, username: str):
+    subject = "Your password has been updated"
+    body = (f"Hello {username},\n\nYour password was successfully updated.\n\nIf you did not perform this action, "
+            f"please contact support immediately.")
+    send_email(user_email, subject, body)
+
+
+def email_event_invite(user_email: str, event_name: str, event_date: str):
+    subject = f"Invitation to Event: {event_name}"
+    body = f"Dear member,\n\nYou are invited to our upcoming event: {event_name} on {event_date}.\n\nHope to see you there!"
+    send_email(user_email, subject, body)

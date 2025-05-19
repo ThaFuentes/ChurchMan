@@ -529,13 +529,16 @@ def view_all_donations():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Handle search and filter
-    search_term = request.args.get('search', '')
-    selected_year = request.args.get('year', '')
+    # Read search and year filter from query params
+    search_term = request.args.get('search', '').strip()
+    selected_year = request.args.get('year', '').strip()
 
-    if selected_year and selected_year != 'all':
+    # Fetch summary donations grouped by name
+    if selected_year and selected_year.lower() != 'all':
         cursor.execute('''
-            SELECT name, SUM(amount) as total_donations, COUNT(*) as number_of_donations
+            SELECT name,
+                   SUM(amount) AS total_donations,
+                   COUNT(*) AS number_of_donations
             FROM donations
             WHERE name LIKE ? AND strftime('%Y', date) = ?
             GROUP BY name
@@ -543,7 +546,9 @@ def view_all_donations():
         ''', ('%' + search_term + '%', selected_year))
     else:
         cursor.execute('''
-            SELECT name, SUM(amount) as total_donations, COUNT(*) as number_of_donations
+            SELECT name,
+                   SUM(amount) AS total_donations,
+                   COUNT(*) AS number_of_donations
             FROM donations
             WHERE name LIKE ?
             GROUP BY name
@@ -552,28 +557,43 @@ def view_all_donations():
 
     donations = cursor.fetchall()
 
-    # Fetch detailed donation data
+    # For each donor, fetch detailed donations with 'id' included for delete action
     detailed_donations = {}
     for donation in donations:
-        cursor.execute('''
-            SELECT date, amount, method
-            FROM donations
-            WHERE name = ? AND (? = '' OR strftime('%Y', date) = ?)
-            ORDER BY date DESC
-        ''', (donation['name'], selected_year, selected_year))
+        if selected_year and selected_year.lower() != 'all':
+            cursor.execute('''
+                SELECT id, date, amount, method, notes
+                FROM donations
+                WHERE name = ? AND strftime('%Y', date) = ?
+                ORDER BY date DESC
+            ''', (donation['name'], selected_year))
+        else:
+            cursor.execute('''
+                SELECT id, date, amount, method, notes
+                FROM donations
+                WHERE name = ?
+                ORDER BY date DESC
+            ''', (donation['name'],))
         detailed_donations[donation['name']] = cursor.fetchall()
 
-    # Get distinct years for the dropdown
-    cursor.execute('SELECT DISTINCT strftime("%Y", date) as year FROM donations ORDER BY year DESC')
+    # Get all distinct years present in donations (for dropdown)
+    cursor.execute('SELECT DISTINCT strftime("%Y", date) AS year FROM donations ORDER BY year DESC')
     years = [row['year'] for row in cursor.fetchall()]
 
     conn.close()
 
-    # Log the view action
+    # Log the view action for audit
     log_change(user_id=user_id, action='view', change_details='Viewed all donations')
 
-    return render_template('view_all_donations.html', donations=donations, detailed_donations=detailed_donations,
-                           years=years, selected_year=selected_year)
+    # Pass all data to template
+    return render_template(
+        'view_all_donations.html',
+        donations=donations,
+        detailed_donations=detailed_donations,
+        years=years,
+        selected_year=selected_year,
+        search_term=search_term
+    )
 
 
 @donations_bp.route('/get_donation_details/<name>', methods=['GET'])

@@ -33,6 +33,7 @@
     .header .back-button {
       position: absolute;
       top: 20px;
+      left: 20px;
       background: #00FFFF;
       color: #000;
       padding: 8px 16px;
@@ -44,13 +45,11 @@
     .header .back-button:hover {
       transform: scale(1.05);
     }
-    .header .back-button {
-      left: 20px;
-    }
 
     /* Email Form Styles */
     .container {
       width: 50%;
+      max-width: 600px;
       margin: 100px auto;
       background: rgba(0, 0, 0, 0.8);
       padding: 20px;
@@ -64,17 +63,21 @@
 
     label {
       font-weight: bold;
+      display: block;
+      margin-bottom: 6px;
     }
 
-    input[type="email"], input[type="text"], textarea {
+    input[type="email"],
+    input[type="text"],
+    textarea {
       width: 100%;
       padding: 10px;
-      margin-top: 5px;
       border: 1px solid #00FFFF;
       border-radius: 4px;
       font-size: 16px;
       background: #000;
       color: #e0e0e0;
+      resize: vertical;
     }
 
     button {
@@ -86,28 +89,45 @@
       cursor: pointer;
       border-radius: 4px;
       width: 100%;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
     }
 
     button:hover {
       background-color: #0088cc;
     }
 
+    /* Flash Messages */
     .flash {
       padding: 10px;
-      background-color: #ff4c4c;
-      color: white;
       border-radius: 4px;
       margin-bottom: 20px;
+      font-weight: bold;
+      font-size: 1em;
     }
-
     .flash.success {
       background-color: #4caf50;
+      color: white;
     }
-
     .flash.error {
       background-color: #f44336;
+      color: white;
     }
 
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        width: 90%;
+        margin: 50px auto;
+      }
+      .header h1 {
+        font-size: 1.5em;
+      }
+      button {
+        font-size: 14px;
+        padding: 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -130,17 +150,38 @@
   <form action="{{ url_for('email.send_email_route') }}" method="POST">
     <div class="form-group">
       <label for="to_email">Recipient Email</label>
-      <input type="email" id="to_email" name="to_email" placeholder="Enter recipient's email" required>
+      <input
+        type="email"
+        id="to_email"
+        name="to_email"
+        placeholder="Enter recipient's email"
+        required
+        value="{{ to_email|default('') }}"
+        autocomplete="email"
+      >
     </div>
 
     <div class="form-group">
       <label for="subject">Subject</label>
-      <input type="text" id="subject" name="subject" placeholder="Enter email subject" required>
+      <input
+        type="text"
+        id="subject"
+        name="subject"
+        placeholder="Enter email subject"
+        required
+        value="{{ subject|default('') }}"
+      >
     </div>
 
     <div class="form-group">
       <label for="body">Body</label>
-      <textarea id="body" name="body" rows="6" placeholder="Enter email body" required></textarea>
+      <textarea
+        id="body"
+        name="body"
+        rows="6"
+        placeholder="Enter email body"
+        required
+      >{{ body|default('') }}</textarea>
     </div>
 
     <button type="submit">Send Email</button>

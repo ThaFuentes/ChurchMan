@@ -4,6 +4,9 @@ from db_handler import get_db_connection
 from functools import wraps
 from datetime import datetime
 from log_changes import log_change  # assuming log_change is defined in your 'log_changes' module
+from flask import request, flash, redirect, url_for, session
+from emailer import send_email  # your existing email sending function
+from db_handler import get_db_connection
 
 announcements_bp = Blueprint('announcements', __name__)
 
@@ -40,6 +43,8 @@ def view_announcements():
 
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    # Query announcements with search on title, content, or creator username
     cursor.execute("""
         SELECT a.id, a.title, a.content, a.user_id,
                a.created_at, a.effective_date, a.expiration_date, a.comments_enabled, a.is_active,
@@ -50,22 +55,24 @@ def view_announcements():
         ORDER BY a.created_at DESC
     """, (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'))
 
-    rows = cursor.fetchall()
+    announcement_rows = cursor.fetchall()
 
     announcements = []
-    for a in rows:
-        aid = a['id']
+    for a in announcement_rows:
+        ann_id = a['id']
+
+        # Fetch comments for this announcement, with commenter username
         cursor.execute("""
             SELECT ac.id, ac.comment, ac.date_added, u.username
             FROM announcement_comments ac
             JOIN users u ON ac.user_id = u.id
             WHERE ac.announcement_id = ?
             ORDER BY ac.date_added ASC
-        """, (aid,))
+        """, (ann_id,))
         comments = cursor.fetchall()
 
         announcements.append({
-            'id': aid,
+            'id': ann_id,
             'title': a['title'],
             'content': a['content'],
             'user_id': a['user_id'],
@@ -73,14 +80,23 @@ def view_announcements():
             'effective_date': a['effective_date'],
             'expiration_date': a['expiration_date'],
             'comments_enabled': a['comments_enabled'],
-            'is_active': a['is_active'],  # Include the active status in the data
+            'is_active': a['is_active'],
             'creator_username': a['creator_username'],
             'comments': comments,
-            'comment_count': len(comments)
+            'comment_count': len(comments),
         })
+
+    # *** FULL ADDITION: fetch members who accept emails ***
+    cursor.execute("""
+        SELECT id, first_name, last_name, email
+        FROM users
+        WHERE accepts_emails = 1
+    """)
+    members = cursor.fetchall()
 
     conn.close()
 
+    # Log that user viewed the announcements page
     log_change(
         user_id=session['user_id'],
         action='view',
@@ -88,7 +104,7 @@ def view_announcements():
         change_details='Viewed announcements list'
     )
 
-    return render_template('announcements.html', announcements=announcements)
+    return render_template('announcements.html', announcements=announcements, members=members)
 
 
 @announcements_bp.route('/<int:ann_id>/comment', methods=['POST'])
@@ -305,3 +321,92 @@ def search_announcements():
     conn.close()
 
     return jsonify(announcements)
+
+@announcements_bp.route('/<int:ann_id>/email', methods=['POST'])
+@role_required
+def email_announcement(ann_id):
+    # Debug: indicate route hit
+    print(f"[DEBUG] email_announcement route called with ann_id={ann_id}")
+
+    # Get form data with debug prints
+    send_to_all_raw = request.form.get('sendAll')
+    send_to_all = send_to_all_raw in ['on', 'true', True]
+    selected_member_ids = request.form.getlist('member_ids')
+    subject = request.form.get('subject', '').strip()
+    custom_message = request.form.get('message', '').strip()
+
+    print(f"[DEBUG] sendToAll raw: {send_to_all_raw}, normalized: {send_to_all}")
+    print(f"[DEBUG] selected_member_ids: {selected_member_ids}")
+    print(f"[DEBUG] subject: {subject}")
+    print(f"[DEBUG] custom_message: {custom_message}")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Fetch announcement details
+    announcement = cursor.execute('SELECT title, content FROM announcements WHERE id=?', (ann_id,)).fetchone()
+    if not announcement:
+        flash('Announcement not found.', 'error')
+        print("[ERROR] Announcement not found in DB for id:", ann_id)
+        conn.close()
+        return redirect(url_for('announcements.view_announcements'))
+
+    print(f"[DEBUG] Announcement fetched: title={announcement['title']}")
+
+    # Fetch members who accept emails
+    if send_to_all:
+        members = cursor.execute('SELECT email FROM users WHERE accepts_emails=1').fetchall()
+        print(f"[DEBUG] Sending to ALL members accepting emails, count={len(members)}")
+    else:
+        if not selected_member_ids:
+            flash("No recipients selected.", "error")
+            print("[ERROR] No recipient IDs selected.")
+            conn.close()
+            return redirect(url_for('announcements.view_announcements'))
+
+        # Defensive: ensure IDs are strings for query params
+        selected_member_ids = [str(mid) for mid in selected_member_ids]
+        placeholders = ','.join('?' for _ in selected_member_ids)
+        query = f'SELECT email FROM users WHERE id IN ({placeholders}) AND accepts_emails=1'
+        members = cursor.execute(query, selected_member_ids).fetchall()
+        print(f"[DEBUG] Sending to selected members, count={len(members)}")
+
+    conn.close()
+
+    if not members:
+        flash("No valid email recipients found.", "error")
+        print("[ERROR] No valid recipients found after query.")
+        return redirect(url_for('announcements.view_announcements'))
+
+    # Compose email body
+    body = f"""Announcement: {announcement['title']}
+
+{announcement['content']}
+
+{custom_message}
+
+Regards,
+Church Team
+"""
+
+    errors = []
+    for member in members:
+        try:
+            print(f"[DEBUG] Sending email to: {member['email']}")
+            send_email(member['email'], subject, body)
+        except Exception as e:
+            error_msg = f"Failed to send to {member['email']}: {str(e)}"
+            errors.append(error_msg)
+            print("[ERROR]", error_msg)
+
+    if errors:
+        flash("Some emails failed: " + "; ".join(errors), "error")
+        print("[ERROR] Email sending errors:", errors)
+    else:
+        flash(f"Announcement emails sent to {len(members)} recipients successfully.", "success")
+        print(f"[DEBUG] All emails sent successfully to {len(members)} recipients.")
+
+    # Optionally log this action here...
+    # log_change(...)
+
+    return redirect(url_for('announcements.view_announcements'))

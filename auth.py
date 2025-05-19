@@ -6,8 +6,10 @@ import random
 import string
 from db_handler import get_db_connection
 from log_changes import log_change
+from emailer import send_email  # or wherever your send_email function lives
 
 auth_bp = Blueprint('auth', __name__)
+
 
 # Login Route
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -29,7 +31,8 @@ def login():
         if user:
             # If account is still pending approval, block login
             if user['role'] == 'pending':
-                flash('Your account is pending approval. Please wait for an administrator to approve your registration.')
+                flash(
+                    'Your account is pending approval. Please wait for an administrator to approve your registration.')
                 return render_template('login.html')
 
             # Check if account is banned
@@ -109,6 +112,25 @@ def register():
         conn.commit()
         new_id = cursor.lastrowid
 
+        # Notify admins by email
+        cursor.execute("SELECT email FROM users WHERE role IN ('Admin', 'Owner')")
+        admin_emails = [row['email'] for row in cursor.fetchall()]
+        subject = "New User Registration Pending Approval"
+        body = (
+            f"A new user has registered and is pending approval:\n\n"
+            f"Name: {first_name} {last_name}\n"
+            f"Username: {username}\n"
+            f"Email: {email}\n"
+            f"Please review and approve or deny the registration in the admin panel."
+        )
+
+        for admin_email in admin_emails:
+            try:
+                send_email(admin_email, subject, body)
+            except Exception as e:
+                # Log email sending failure but don't stop registration
+                print(f"Failed to send admin notification to {admin_email}: {e}")
+
         log_change(
             user_id=new_id,
             action='register',
@@ -145,15 +167,15 @@ def request_reset_password():
             conn.commit()
             conn.close()
 
-            msg = Message('Password Reset Request', recipients=[email])
-            msg.body = (
+            subject = 'Password Reset Request'
+            body = (
                 f'Your password has been reset.\n\n'
                 f'Temporary Login Code: {reset_code}\n\n'
                 'Please change your password after logging in.'
             )
+
             try:
-                mail = current_app.extensions['mail']
-                mail.send(msg)
+                send_email(email, subject, body)
                 flash('A reset code has been sent to your email.')
             except Exception as e:
                 flash(f"Failed to send email: {str(e)}")
@@ -178,11 +200,11 @@ def forgot_username():
         conn.close()
 
         if user:
-            msg = Message('Your Username', recipients=[email])
-            msg.body = f'Your username is: {user["username"]}'
+            subject = 'Your Username'
+            body = f'Your username is: {user["username"]}'
+
             try:
-                mail = current_app.extensions['mail']
-                mail.send(msg)
+                send_email(email, subject, body)
                 flash('Your username has been sent to your email.')
             except Exception as e:
                 flash(f"Failed to send email: {str(e)}")

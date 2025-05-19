@@ -21,96 +21,192 @@
       padding: 20px; text-align: center;
       border-bottom: 2px solid #00FFFF;
     }
-    .header h1 { margin:0; color:#00FFFF; font-size:2em; }
+    .header h1 {
+      margin: 0; color: #00FFFF; font-size: 2em;
+    }
     .header .back-button,
     .header .new-button {
-      position:absolute; top:20px;
-      background:#00FFFF; color:#000;
-      padding:8px 16px; border:none; border-radius:4px;
-      font-weight:bold; transition:transform .2s;
+      position: absolute; top: 20px;
+      background: #00FFFF; color: #000;
+      padding: 8px 16px; border: none; border-radius: 4px;
+      font-weight: bold; transition: transform 0.2s;
+      cursor: pointer;
     }
     .header .back-button:hover,
-    .header .new-button:hover { transform:scale(1.05); }
-    .header .back-button { left:20px; }
-    .header .new-button { right:20px; }
+    .header .new-button:hover {
+      transform: scale(1.05);
+    }
+    .header .back-button { left: 20px; }
+    .header .new-button { right: 20px; }
 
     /* Search & Filters */
     .search-container {
-      display:flex; flex-wrap:wrap;
-      align-items:center; justify-content:space-between;
-      padding:10px 20px; background:rgba(0,0,0,0.7);
-      border-bottom:1px solid #00FFFF;
+      display: flex; flex-wrap: wrap;
+      align-items: center; justify-content: space-between;
+      padding: 10px 20px;
+      background: rgba(0,0,0,0.7);
+      border-bottom: 1px solid #00FFFF;
     }
     #searchBox {
-      flex:1; max-width:400px;
-      padding:8px 12px; margin-right:10px;
-      border:1px solid #00FFFF; border-radius:4px;
-      background:#000; color:#e0e0e0;
-      transition:border-color .3s;
+      flex: 1; max-width: 400px;
+      padding: 8px 12px; margin-right: 10px;
+      border: 1px solid #00FFFF; border-radius: 4px;
+      background: #000; color: #e0e0e0;
+      transition: border-color 0.3s;
     }
-    #searchBox:focus { border-color:#FFF; }
+    #searchBox:focus {
+      border-color: #FFF;
+      outline: none;
+    }
     .filter-buttons button {
-      margin-left:6px; padding:8px 12px;
-      background:#00FFFF; color:#000;
-      border:none; border-radius:4px; cursor:pointer;
-      transition:background .3s,color .3s;
+      margin-left: 6px; padding: 8px 12px;
+      background: #00FFFF; color: #000;
+      border: none; border-radius: 4px; cursor: pointer;
+      transition: background 0.3s, color 0.3s;
     }
     .filter-buttons button.active {
-      background:#000; color:#00FFFF;
-      animation:pulse 1s infinite alternate;
+      background: #000; color: #00FFFF;
+      animation: pulse 1s infinite alternate;
     }
     @keyframes pulse {
-      from { box-shadow:0 0 5px #00FFFF; }
-      to   { box-shadow:0 0 20px #00FFFF; }
+      from { box-shadow: 0 0 5px #00FFFF; }
+      to { box-shadow: 0 0 20px #00FFFF; }
     }
 
     /* Table */
     table {
-      width:100%; border-collapse:collapse;
-      margin:20px 0; background:rgba(0,0,0,0.7);
+      width: 100%; border-collapse: collapse;
+      margin: 20px 0; background: rgba(0,0,0,0.7);
     }
     th, td {
-      padding:10px; border:1px solid #00FFFF;
-      text-align:left; vertical-align:top;
+      padding: 10px; border: 1px solid #00FFFF;
+      text-align: left; vertical-align: top;
     }
     th {
-      background:rgba(0,255,255,0.8); color:#000;
+      background: rgba(0,255,255,0.8); color: #000;
     }
     tr.data-row:hover {
-      background:#00FFFF; color:#000; cursor:pointer;
+      background: #00FFFF; color: #000;
+      cursor: pointer;
     }
 
     /* Details */
-    .details-row { display:none; background:#222; }
-    .details-content {
-      padding:10px; background:#000; color:#fff;
-      border-top:1px solid #00FFFF;
+    .details-row {
+      display: none;
+      background: #222;
     }
-    .comments { margin-top:10px; }
-    .comment { margin-bottom:8px; }
-    .comment strong { color:#00FFFF; }
+    .details-content {
+      padding: 10px;
+      background: #000;
+      color: #fff;
+      border-top: 1px solid #00FFFF;
+    }
 
+    /* Comments Section */
+    .comments {
+      margin-top: 10px;
+    }
+    .comment {
+      margin-bottom: 8px;
+    }
+    .comment strong {
+      color: #00FFFF;
+    }
+
+    /* Add Comment Form */
     .add-comment-form {
-      margin-top:12px;
+      margin-top: 12px;
     }
     .add-comment-form input {
-      width:70%; padding:6px; margin-right:6px;
-      border:1px solid #00FFFF; border-radius:4px;
-      background:#000; color:#e0e0e0;
+      width: 70%;
+      padding: 6px;
+      margin-right: 6px;
+      border: 1px solid #00FFFF;
+      border-radius: 4px;
+      background: #000;
+      color: #e0e0e0;
     }
     .add-comment-form button {
-      padding:6px 12px; border:none; border-radius:4px;
-      background:#00FFFF; color:#000; cursor:pointer;
-      transition:transform .2s;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      background: #00FFFF;
+      color: #000;
+      cursor: pointer;
+      transition: transform 0.2s;
     }
-    .add-comment-form button:hover { transform:scale(1.05); }
+    .add-comment-form button:hover {
+      transform: scale(1.05);
+    }
 
+    /* Action Buttons */
     .action-btn {
-      background:none; border:none; color:#00FFFF;
-      cursor:pointer; font-size:.9em; margin-left:6px;
-      transition:color .3s;
+      background: none;
+      border: none;
+      color: #00FFFF;
+      cursor: pointer;
+      font-size: 0.9em;
+      margin-left: 6px;
+      transition: color 0.3s;
     }
-    .action-btn:hover { color:#FFF; }
+    .action-btn:hover {
+      color: #FFF;
+    }
+
+    /* ----------- Email Modal ----------- */
+    #emailModal {
+      display: none; position: fixed; z-index: 1000;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(2px);
+    }
+    #emailModalContent {
+      position: relative;
+      margin: 5% auto; width: 420px;
+      background: #111; padding: 20px;
+      border: 2px solid #00FFFF; border-radius: 8px;
+      color: #e0e0e0;
+      box-shadow: 0 0 20px #00FFFF;
+    }
+    #emailModalClose {
+      position: absolute; top: 8px; right: 12px;
+      font-size: 24px; color: #00FFFF; cursor: pointer;
+    }
+    #emailModalContent h2 {
+      margin-top: 0; color: #00FFFF;
+    }
+    #emailModalContent label {
+      margin: 10px 0 5px; display: block;
+    }
+    #emailModalContent input[type="text"],
+    #emailModalContent textarea {
+      width: 100%; padding: 8px;
+      background: #000; color: #e0e0e0;
+      border: 1px solid #00FFFF; border-radius: 4px;
+      margin-bottom: 10px; resize: vertical;
+    }
+    .member-list {
+      max-height: 200px; overflow-y: auto;
+      padding: 10px; background: #000;
+      border: 1px solid #00FFFF;
+      margin-bottom: 10px;
+    }
+    .member-list label {
+      display: flex; align-items: center;
+      font-size: 0.9em; cursor: pointer;
+    }
+    .member-list input[type="checkbox"] {
+      margin-right: 6px; transform: scale(1.1);
+    }
+    button.send-btn {
+      padding: 8px 15px; background: #00FFFF;
+      color: #000; border: none; border-radius: 4px;
+      font-weight: bold; cursor: pointer;
+      transition: background 0.3s;
+    }
+    button.send-btn:hover {
+      background: #00CCCC;
+    }
   </style>
 </head>
 <body>
@@ -122,7 +218,7 @@
   </div>
 
   <div class="search-container">
-    <input id="searchBox" type="text" placeholder="Search title, content, or creator…" />
+    <input id="searchBox" type="text" placeholder="Search title, content, or creator…" autocomplete="off"/>
     <div class="filter-buttons">
       <button onclick="applyFilter('all')" data-filter="all" class="active">All</button>
       <button onclick="applyFilter('1')" data-filter="1">Active</button>
@@ -133,7 +229,12 @@
   <table>
     <thead>
       <tr>
-        <th>Title</th><th>Date Posted</th><th>Created By</th><th>Comments</th><th>Status</th><th>Actions</th>
+        <th>Title</th>
+        <th>Date Posted</th>
+        <th>Created By</th>
+        <th>Comments</th>
+        <th>Status</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody id="annBody">
@@ -158,6 +259,7 @@
                   onsubmit="return confirm('Deactivate this announcement?')">
               <button type="submit" class="action-btn">Delete</button>
             </form>
+            <button type="button" class="action-btn" onclick="openEmailModal({{ a.id }}, '{{ a.title|e }}', {{ a.user_id }})">Email</button>
           {% endif %}
         </td>
       </tr>
@@ -166,11 +268,13 @@
           <p>{{ a.content }}</p>
           <div class="comments">
             <h4>Comments:</h4>
-            {% for c in a.comments %}
-              <div class="comment"><strong>{{ c.username }}:</strong> {{ c.comment }}</div>
+            {% if a.comments %}
+              {% for c in a.comments %}
+                <div class="comment"><strong>{{ c.username }}:</strong> {{ c.comment }}</div>
+              {% endfor %}
             {% else %}
               <p><em>No comments yet.</em></p>
-            {% endfor %}
+            {% endif %}
           </div>
           {% if a.comments_enabled %}
           <form action="{{ url_for('announcements.add_comment', ann_id=a.id) }}"
@@ -185,67 +289,150 @@
     </tbody>
   </table>
 
+  <!-- Email Modal -->
+  <div id="emailModal" aria-hidden="true" role="dialog" aria-labelledby="emailModalTitle">
+    <div id="emailModalContent">
+      <button id="emailModalClose" aria-label="Close Email Modal">&times;</button>
+      <h2 id="emailModalTitle">Email Announcement</h2>
+      <form id="emailForm" method="POST" action="{{ url_for('announcements.email_announcement', ann_id=0) }}">
+        <input type="hidden" name="ann_id" id="emailAnnId" />
+
+        <label>
+          <input type="checkbox" name="sendAll" id="sendAll" onchange="toggleMemberList(this.checked)" />
+          Send to <strong>ALL</strong> members who accept emails
+        </label>
+
+        <div class="member-list" id="memberList" tabindex="0">
+          {% for m in members %}
+          <label>
+            <input type="checkbox" name="member_ids" value="{{ m.id }}" class="member-checkbox" />
+            {{ m.first_name }} {{ m.last_name }} &lt;{{ m.email }}&gt;
+          </label>
+          {% endfor %}
+        </div>
+
+        <label for="emailSubject">Subject:</label>
+        <input type="text" name="subject" id="emailSubject" required />
+
+        <label for="emailMessage">Message (optional):</label>
+        <textarea name="message" id="emailMessage" placeholder="Add a personal note..."></textarea>
+
+        <button type="submit" class="send-btn">Send Email</button>
+      </form>
+    </div>
+  </div>
+
   <script>
+    // Toggle details row visibility
     function toggleDetails(id) {
-      const r = document.getElementById(id);
-      r.style.display = r.style.display === 'table-row' ? 'none' : 'table-row';
+      const row = document.getElementById(id);
+      row.style.display = (row.style.display === 'table-row') ? 'none' : 'table-row';
     }
 
-    (function(){
-      const box = document.getElementById('searchBox'),
-            body = document.getElementById('annBody'),
-            buttons = document.querySelectorAll('.filter-buttons button');
-      let timer, current = 'all';
+    // Open email modal, set up form
+    function openEmailModal(id, title, userId) {
+      document.getElementById('emailAnnId').value = id;
+      document.getElementById('emailSubject').value = `Announcement: ${title}`;
+      document.getElementById('emailMessage').value = '';
+      document.getElementById('sendAll').checked = false;
+      toggleMemberList(false);
+      document.getElementById('emailForm').action =
+        "{{ url_for('announcements.email_announcement', ann_id=0) }}".replace('/0', '/' + id);
 
-      function highlight(){
-        buttons.forEach(b=>b.classList.toggle('active', b.dataset.filter===current));
+      // Set focus for accessibility
+      document.getElementById('emailModal').style.display = 'block';
+      document.getElementById('emailModal').setAttribute('aria-hidden', 'false');
+      document.getElementById('emailSubject').focus();
+    }
+
+    // Close email modal
+    document.getElementById('emailModalClose').addEventListener('click', closeEmailModal);
+    function closeEmailModal() {
+      document.getElementById('emailModal').style.display = 'none';
+      document.getElementById('emailModal').setAttribute('aria-hidden', 'true');
+    }
+
+    // Toggle member checkboxes enabled/disabled based on "send all"
+    function toggleMemberList(sendAll) {
+      document.querySelectorAll('.member-checkbox').forEach(cb => {
+        cb.disabled = sendAll;
+        if (sendAll) cb.checked = false;
+      });
+    }
+
+    // Close modal on outside click
+    window.onclick = e => {
+      if (e.target === document.getElementById('emailModal')) {
+        closeEmailModal();
+      }
+    };
+
+    // Search & filter logic
+    (function() {
+      const searchBox = document.getElementById('searchBox');
+      const annBody = document.getElementById('annBody');
+      const filterButtons = document.querySelectorAll('.filter-buttons button');
+      let timer;
+      let currentFilter = 'all';
+
+      function highlightFilter() {
+        filterButtons.forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+        });
       }
 
-      function doSearch(){
-        const q = box.value.trim(),
-              params = new URLSearchParams();
-        if(q) params.set('q', q);
-        if(current!=='all') params.set('is_active', current);
+      function fetchAnnouncements() {
+        const q = searchBox.value.trim();
+        const params = new URLSearchParams();
+        if (q) params.set('q', q);
+        if (currentFilter !== 'all') params.set('is_active', currentFilter);
+
         fetch(`{{ url_for('announcements.search_announcements') }}?${params}`)
-          .then(r=>r.json())
-          .then(arr=>{
-            if(!arr.length){
-              body.innerHTML='<tr><td colspan="6">No matches.</td></tr>';
+          .then(response => response.json())
+          .then(data => {
+            if (!data.length) {
+              annBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No matches.</td></tr>';
               return;
             }
-            let html='';
-            arr.forEach(a=>{
-              html+=`
+            let html = '';
+            data.forEach(a => {
+              html += `
                 <tr class="data-row" onclick="toggleDetails('details-${a.id}')">
                   <td>${a.title}</td>
                   <td>${a.created_at}</td>
                   <td>${a.creator_username}</td>
                   <td>${a.comment_count}</td>
-                  <td>${a.is_active === 1 ? 'Active' : 'Inactive'}</td>
-                  <td>—</td>
+                  <td>${a.is_active == 1 ? 'Active' : 'Inactive'}</td>
+                  <td>
+                    ${( {{ 'true' if session.user_role in ['Admin','Owner'] else 'false' }} || a.user_id == {{ session.user_id }} )
+                      ? `<button type="button" class="action-btn" onclick="event.stopPropagation(); openEmailModal(${a.id}, '${a.title.replace(/'/g,"\\'")}', ${a.user_id})">Email</button>`
+                      : ''
+                    }
+                  </td>
                 </tr>
                 <tr class="details-row" id="details-${a.id}">
                   <td colspan="6" class="details-content">
                     <p>${a.content}</p>
                   </td>
-                </tr>`;
+                </tr>
+              `;
             });
-            body.innerHTML = html;
+            annBody.innerHTML = html;
           });
       }
 
-      box.addEventListener('input', ()=>{
+      searchBox.addEventListener('input', () => {
         clearTimeout(timer);
-        timer = setTimeout(doSearch, 300);
+        timer = setTimeout(fetchAnnouncements, 300);
       });
 
-      window.applyFilter = f=>{
-        current = String(f);
-        highlight();
-        doSearch();
+      window.applyFilter = filter => {
+        currentFilter = filter;
+        highlightFilter();
+        fetchAnnouncements();
       };
 
-      highlight();
+      highlightFilter();
     })();
   </script>
 

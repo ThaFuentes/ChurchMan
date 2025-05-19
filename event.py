@@ -4,6 +4,8 @@ from collections import defaultdict
 from datetime import datetime
 from functools import wraps
 import logging
+from flask import request, render_template, flash, redirect, url_for, session
+from emailer import send_email  # your email sending function
 
 DATABASE = 'church_management.db'
 
@@ -59,9 +61,14 @@ def events():
     conn = get_db_connection()
     try:
         events = conn.execute('SELECT * FROM events').fetchall()
+        # Fetch members who accept emails, to use in email modal selection
+        members = conn.execute(
+            'SELECT id, first_name, last_name, email FROM users WHERE accepts_emails = 1'
+        ).fetchall()
     except sqlite3.Error as e:
         flash(f"An error occurred while fetching events: {str(e)}")
         events = []
+        members = []
     finally:
         conn.close()
 
@@ -99,7 +106,8 @@ def events():
     events_by_year = dict(sorted(events_by_year.items(), reverse=True))
     log_change(user_id=session['user_id'], action='access', change_details='Accessed the events page')
 
-    return render_template('event.html', events=new_events, events_by_year=events_by_year)
+    # Pass the members list to your template here.
+    return render_template('event.html', events=new_events, events_by_year=events_by_year, members=members)
 
 
 # Route to add a new event
@@ -277,18 +285,25 @@ def delete_event(event_id):
         cursor.execute('DELETE FROM events WHERE id = ?', (event_id,))
         conn.commit()
 
-        # Log the deletion of the event
-        log_change(user_id=session['user_id'], action='delete', target_id=event_id,
-                   change_details=f"Deleted event with ID: {event_id}")
-        flash('Event deleted successfully.')
+        # Log the deletion
+        log_change(
+            user_id=session['user_id'],
+            action='delete',
+            target_id=event_id,
+            change_details=f"Deleted event with ID: {event_id}"
+        )
+
+        # Return 204 No Content so client-side can just reload
+        return '', 204
 
     except sqlite3.Error as e:
-        flash(f"An error occurred while deleting the event: {str(e)}")
+        # Return 500 with error message
+        return f"Error deleting event: {e}", 500
 
     finally:
         conn.close()
 
-    return redirect(url_for('event.events'))
+
 
 
 @event_bp.route('/potluck/add/<int:event_id>', methods=['POST'])
@@ -473,3 +488,125 @@ def search_events():
         conn.close()
 
     return jsonify(events)
+
+
+@event_bp.route('/email-event', methods=['GET', 'POST'])
+@role_required(['Staff', 'Admin', 'Owner'])
+def email_event():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Get event ID from form (POST) or query param (GET)
+    event_id = request.values.get('event_id', type=int)
+    print(f"[DEBUG] Received event_id: {event_id}", flush=True)
+    if not event_id:
+        flash("No event specified.", "error")
+        conn.close()
+        return redirect(url_for('event.events'))
+
+    # Fetch event details
+    event = cursor.execute('SELECT * FROM events WHERE id = ?', (event_id,)).fetchone()
+    if not event:
+        print("[DEBUG] Event not found in DB.", flush=True)
+        flash("Event not found.", "error")
+        conn.close()
+        return redirect(url_for('event.events'))
+
+    # Fetch members who accept emails
+    members = cursor.execute('SELECT id, first_name, last_name, email FROM users WHERE accepts_emails = 1').fetchall()
+
+    if request.method == 'POST':
+        # Close DB early as no more queries are needed
+        conn.close()
+
+        print(f"[DEBUG] FORM DATA: {request.form}", flush=True)
+
+        # Checkbox presence indicates send to all
+        send_to_all = 'send_to_all' in request.form
+        selected_member_ids = request.form.getlist('member_ids') or []
+        selected_member_ids = [str(mid) for mid in selected_member_ids]
+
+        print(f"[DEBUG] send_to_all: {send_to_all}", flush=True)
+        print(f"[DEBUG] selected_member_ids: {selected_member_ids}", flush=True)
+        print(f"[DEBUG] Total members who accept emails: {len(members)}", flush=True)
+
+        # Compose recipient list
+        if send_to_all:
+            recipients = [m['email'] for m in members]
+            print(f"[DEBUG] Sending to ALL members: {recipients}", flush=True)
+        else:
+            recipients = [m['email'] for m in members if str(m['id']) in selected_member_ids]
+            print(f"[DEBUG] Sending to selected members: {recipients}", flush=True)
+
+        if not recipients:
+            flash("No recipients selected.", "error")
+            print("[DEBUG] No recipients found to send email.", flush=True)
+            # Render the form again with previous inputs
+            return render_template(
+                'email_event.html',
+                event=event,
+                members=members,
+                send_to_all=send_to_all,
+                selected_member_ids=selected_member_ids,
+                subject=request.form.get('subject', ''),
+                message=request.form.get('message', '')
+            )
+
+        subject = request.form.get('subject', '').strip()
+        if not subject:
+            subject = f"Event Notification: {event['event_name']}"
+            print(f"[DEBUG] No subject provided, defaulting to: {subject}", flush=True)
+
+        custom_message = request.form.get('message', '').strip()
+        print(f"[DEBUG] Custom message length: {len(custom_message)}", flush=True)
+
+        body = f"""
+Hello,
+
+You are invited to the event:
+
+Name: {event['event_name']}
+Date: {event['event_date']}
+Time: {event['event_time']}
+Location: {event['location']}
+Description: {event['description'] or 'No description provided.'}
+
+{custom_message}
+
+Please contact us for more information.
+
+Thank you,
+Church Team
+"""
+
+        errors = []
+        for email in recipients:
+            try:
+                print(f"[DEBUG] Attempting to send email to: {email}", flush=True)
+                send_email(email, subject, body)
+                print(f"[DEBUG] Email sent successfully to: {email}", flush=True)
+            except Exception as e:
+                error_msg = f"Failed to send to {email}: {str(e)}"
+                print(f"[ERROR] {error_msg}", flush=True)
+                errors.append(error_msg)
+
+        if errors:
+            flash("Some emails failed to send: " + "; ".join(errors), "error")
+            print(f"[DEBUG] Errors encountered: {errors}", flush=True)
+        else:
+            flash(f"Event emails sent to {len(recipients)} recipients successfully.", "success")
+            print(f"[DEBUG] All emails sent successfully to {len(recipients)} recipients.", flush=True)
+
+        log_change(
+            session['user_id'],
+            'email',
+            event_id,
+            event['event_name'],
+            f"Sent event email to {len(recipients)} recipients"
+        )
+
+        return redirect(url_for('event.events'))
+
+    # GET request - close DB before rendering
+    conn.close()
+    return render_template('email_event.html', event=event, members=members)
