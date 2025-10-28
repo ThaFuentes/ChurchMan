@@ -1,6 +1,7 @@
 import sqlite3
 from db_handler import get_db_connection
 
+
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -47,33 +48,51 @@ def init_db():
             id                    INTEGER PRIMARY KEY AUTOINCREMENT,
             title                 TEXT    NOT NULL,
             content               TEXT    NOT NULL,
-            user_id               INTEGER NOT NULL,
+            user_id               INTEGER,
+            contributor_name      TEXT,  -- For non-registered users
+            ip_address            TEXT,  -- For IP tracking
             created_at            DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at            DATETIME DEFAULT CURRENT_TIMESTAMP,
             effective_date        DATETIME,
             expiration_date       DATETIME,
             is_active             BOOLEAN DEFAULT 1,
             comments_enabled      BOOLEAN DEFAULT 1,
-            created_by            INTEGER NOT NULL,
+            created_by            INTEGER,
             updated_by            INTEGER,
             FOREIGN KEY(user_id)   REFERENCES users(id),
             FOREIGN KEY(created_by) REFERENCES users(id),
             FOREIGN KEY(updated_by) REFERENCES users(id)
         );
     """)
+    existing_ann = {col[1] for col in cursor.execute("PRAGMA table_info(announcements);").fetchall()}
+    for col_def in [
+        ("contributor_name", "TEXT"),
+        ("ip_address", "TEXT")
+    ]:
+        if col_def[0] not in existing_ann:
+            cursor.execute(f"ALTER TABLE announcements ADD COLUMN {col_def[0]} {col_def[1]};")
 
     # ----- ANNOUNCEMENT_COMMENTS TABLE -----
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS announcement_comments (
             id               INTEGER PRIMARY KEY AUTOINCREMENT,
             announcement_id  INTEGER NOT NULL,
-            user_id          INTEGER NOT NULL,
+            user_id          INTEGER,
+            contributor_name TEXT,  -- For non-registered users
+            ip_address       TEXT,  -- For IP tracking
             comment          TEXT    NOT NULL,
             date_added       DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(announcement_id) REFERENCES announcements(id),
-            FOREIGN KEY(user_id)            REFERENCES users(id)
+            FOREIGN KEY(user_id)         REFERENCES users(id)
         );
     """)
+    existing_ann_com = {col[1] for col in cursor.execute("PRAGMA table_info(announcement_comments);").fetchall()}
+    for col_def in [
+        ("contributor_name", "TEXT"),
+        ("ip_address", "TEXT")
+    ]:
+        if col_def[0] not in existing_ann_com:
+            cursor.execute(f"ALTER TABLE announcement_comments ADD COLUMN {col_def[0]} {col_def[1]};")
 
     # ----- FAMILY_RELATIONS TABLE -----
     cursor.execute("""
@@ -235,27 +254,45 @@ def init_db():
     # ----- PRAYERS TABLE -----
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS prayers (
-            id           INTEGER PRIMARY KEY AUTOINCREMENT,
-            title        TEXT    NOT NULL,
-            description  TEXT    NOT NULL,
-            user_id      INTEGER NOT NULL,
-            date_posted  TEXT    NOT NULL,
+            id                INTEGER PRIMARY KEY AUTOINCREMENT,
+            title             TEXT    NOT NULL,
+            description       TEXT    NOT NULL,
+            user_id           INTEGER,
+            contributor_name  TEXT,
+            ip_address        TEXT,
+            date_posted       TEXT    NOT NULL,
             FOREIGN KEY(user_id) REFERENCES users(id)
         );
     """)
+    existing_prayers = {col[1] for col in cursor.execute("PRAGMA table_info(prayers);").fetchall()}
+    for col_def in [
+        ("contributor_name", "TEXT"),
+        ("ip_address", "TEXT")
+    ]:
+        if col_def[0] not in existing_prayers:
+            cursor.execute(f"ALTER TABLE prayers ADD COLUMN {col_def[0]} {col_def[1]};")
 
     # ----- PRAYERS_ADDED TABLE -----
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS prayers_added (
             id                 INTEGER PRIMARY KEY AUTOINCREMENT,
             prayer_request_id  INTEGER NOT NULL,
-            user_id            INTEGER NOT NULL,
+            user_id            INTEGER,
+            contributor_name   TEXT,
+            ip_address         TEXT,
             prayer             TEXT    NOT NULL,
             date_added         TEXT    NOT NULL,
             FOREIGN KEY(prayer_request_id) REFERENCES prayers(id),
             FOREIGN KEY(user_id)            REFERENCES users(id)
         );
     """)
+    existing_prayers_added = {col[1] for col in cursor.execute("PRAGMA table_info(prayers_added);").fetchall()}
+    for col_def in [
+        ("contributor_name", "TEXT"),
+        ("ip_address", "TEXT")
+    ]:
+        if col_def[0] not in existing_prayers_added:
+            cursor.execute(f"ALTER TABLE prayers_added ADD COLUMN {col_def[0]} {col_def[1]};")
 
     # ----- MEMBER_ROLES TABLE -----
     cursor.execute("""
@@ -300,19 +337,30 @@ def init_db():
         CREATE TABLE IF NOT EXISTS sermon_comments (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             sermon_id   INTEGER NOT NULL,
-            user_id     INTEGER NOT NULL,
+            user_id     INTEGER,
+            contributor_name TEXT,
+            ip_address  TEXT,
             comment     TEXT    NOT NULL,
             date_added  DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(sermon_id) REFERENCES sermons(id),
             FOREIGN KEY(user_id)    REFERENCES users(id)
         );
     """)
+    existing_sermon_comments = {col[1] for col in cursor.execute("PRAGMA table_info(sermon_comments);").fetchall()}
+    for col_def in [
+        ("contributor_name", "TEXT"),
+        ("ip_address", "TEXT")
+    ]:
+        if col_def[0] not in existing_sermon_comments:
+            cursor.execute(f"ALTER TABLE sermon_comments ADD COLUMN {col_def[0]} {col_def[1]};")
 
     # ----- DREAMS TABLE -----
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS dreams (
             id               INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id          INTEGER NOT NULL,
+            user_id          INTEGER,
+            contributor_name TEXT,
+            ip_address       TEXT,
             title            TEXT    NOT NULL,
             description      TEXT    NOT NULL,
             notes            TEXT,
@@ -328,42 +376,87 @@ def init_db():
             FOREIGN KEY(approved_by) REFERENCES users(id)
         );
     """)
+    existing_dreams = {col[1] for col in cursor.execute("PRAGMA table_info(dreams);").fetchall()}
+    for col_def in [
+        ("contributor_name", "TEXT"),
+        ("ip_address", "TEXT")
+    ]:
+        if col_def[0] not in existing_dreams:
+            cursor.execute(f"ALTER TABLE dreams ADD COLUMN {col_def[0]} {col_def[1]};")
 
     # ----- DREAM_COMMENTS TABLE -----
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS dream_comments (
             id           INTEGER PRIMARY KEY AUTOINCREMENT,
             dream_id     INTEGER NOT NULL,
-            user_id      INTEGER NOT NULL,
+            user_id      INTEGER,
+            contributor_name TEXT,
+            ip_address   TEXT,
             comment      TEXT    NOT NULL,
             date_posted  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(dream_id) REFERENCES dreams(id),
             FOREIGN KEY(user_id)  REFERENCES users(id)
         );
     """)
+    existing_dream_comments = {col[1] for col in cursor.execute("PRAGMA table_info(dream_comments);").fetchall()}
+    for col_def in [
+        ("contributor_name", "TEXT"),
+        ("ip_address", "TEXT")
+    ]:
+        if col_def[0] not in existing_dream_comments:
+            cursor.execute(f"ALTER TABLE dream_comments ADD COLUMN {col_def[0]} {col_def[1]};")
 
     # ----- PROPHECIES TABLE -----
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS prophecies (
-            id           INTEGER PRIMARY KEY AUTOINCREMENT,
-            title        TEXT    NOT NULL,
-            description  TEXT,
-            user_id      INTEGER,
-            date_posted  DATETIME DEFAULT CURRENT_TIMESTAMP,
+            id               INTEGER PRIMARY KEY AUTOINCREMENT,
+            title            TEXT    NOT NULL,
+            description      TEXT,
+            user_id          INTEGER,
+            contributor_name TEXT,
+            ip_address       TEXT,
+            date_posted      DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(user_id) REFERENCES users(id)
         );
     """)
+    existing_prophecies = {col[1] for col in cursor.execute("PRAGMA table_info(prophecies);").fetchall()}
+    for col_def in [
+        ("contributor_name", "TEXT"),
+        ("ip_address", "TEXT")
+    ]:
+        if col_def[0] not in existing_prophecies:
+            cursor.execute(f"ALTER TABLE prophecies ADD COLUMN {col_def[0]} {col_def[1]};")
 
     # ----- PROPHECY_COMMENTS TABLE -----
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS prophecy_comments (
             id           INTEGER PRIMARY KEY AUTOINCREMENT,
             prophecy_id  INTEGER NOT NULL,
-            user_id      INTEGER NOT NULL,
+            user_id      INTEGER,
+            contributor_name TEXT,
+            ip_address   TEXT,
             comment      TEXT    NOT NULL,
             date_added   DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(prophecy_id) REFERENCES prophecies(id),
             FOREIGN KEY(user_id)     REFERENCES users(id)
+        );
+    """)
+    existing_prophecy_comments = {col[1] for col in cursor.execute("PRAGMA table_info(prophecy_comments);").fetchall()}
+    for col_def in [
+        ("contributor_name", "TEXT"),
+        ("ip_address", "TEXT")
+    ]:
+        if col_def[0] not in existing_prophecy_comments:
+            cursor.execute(f"ALTER TABLE prophecy_comments ADD COLUMN {col_def[0]} {col_def[1]};")
+
+    # ----- BANNED_IPS TABLE -----
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS banned_ips (
+            ip_address TEXT PRIMARY KEY,
+            banned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            banned_by INTEGER,
+            reason TEXT,
+            FOREIGN KEY(banned_by) REFERENCES users(id)
         );
     """)
 

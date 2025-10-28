@@ -8,7 +8,7 @@
     body {
       font-family: Arial, sans-serif;
       margin: 0; padding: 0;
-      background: url('{{ url_for("static", filename="images/Login.png") }}') no-repeat center center fixed;
+      background: url('{{ url_for("static", filename="images/Login.png") }}') no-repeat center center fixed, #2c3e50;
       background-size: cover;
       color: #fff;
       text-align: center;
@@ -16,20 +16,24 @@
 
     /* Header */
     .header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background: rgba(0,0,0,0.6);
       font-size: 2rem;
       font-weight: bold;
       text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
     }
 
-    /* Status Message under header */
+    /* Top Navigation */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: rgba(0,0,0,0.6);
+    }
+
+    /* Status Message */
     .status-message {
       margin-top: 10px;
-      color: #ff4d4d;       /* red */
+      color: #ff4d4d;
       font-size: 1.2rem;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
     }
@@ -46,6 +50,32 @@
     .content p {
       font-size: 1.2rem;
       text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+      line-height: 1.6;
+    }
+
+    .welcome-section {
+      margin-bottom: 30px;
+    }
+
+    .welcome-section h2 {
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+    }
+
+    .welcome-section a {
+      color: #007BFF;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .welcome-section a:hover {
+      text-decoration: underline;
+    }
+
+    .church-info {
+      font-size: 1.1rem;
+      margin: 15px 0;
     }
 
     .bible-verse {
@@ -54,18 +84,26 @@
       margin-top: 20px;
     }
 
+    /* Form Container */
+    .form-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 200px;
+    }
+
     /* Buttons */
     .login-btn, .register-btn {
       display: inline-block;
-      padding: 15px 35px;
-      margin: 20px 10px 0;
+      padding: 10px 25px;
       border: none;
       cursor: pointer;
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       transition: background 0.3s ease, transform 0.2s ease;
-      min-width: 180px;
+      min-width: 120px;
     }
     .login-btn {
       background-color: #007BFF;
@@ -85,16 +123,23 @@
     }
 
     /* Form Styling */
+    #loginFormContent, #registerForm {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
     label {
       display: block;
       margin: 10px auto 5px;
-      font-size: 1rem; font-weight: bold;
+      font-size: 1rem;
+      font-weight: bold;
       color: #fff;
       text-align: left;
-      width: 80%; margin: 0 auto;
     }
+
     input {
-      width: 80%;
+      width: 100%;
       padding: 10px;
       margin-bottom: 15px;
       border: 1px solid #ccc;
@@ -102,7 +147,9 @@
       font-size: 1rem;
       background: #fff;
       color: #000;
+      box-sizing: border-box;
     }
+
     input::placeholder {
       color: #777;
     }
@@ -118,10 +165,12 @@
       margin-top: 15px;
       font-size: 0.9em;
     }
+
     .reset-link a {
       color: #007BFF;
       text-decoration: none;
     }
+
     .reset-link a:hover {
       text-decoration: underline;
     }
@@ -133,7 +182,7 @@
       padding: 15px 0;
       border: none;
       cursor: pointer;
-      width: 90%;
+      width: 100%;
       border-radius: 8px;
       font-size: 1.2rem;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
@@ -141,20 +190,64 @@
       display: block;
       transition: background 0.3s ease, transform 0.2s ease;
     }
+
     button[type="submit"]:hover {
       background: #0056b3;
       transform: translateY(-2px);
     }
+
     button[type="submit"]:active {
       transform: translateY(0);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .top-nav {
+        flex-direction: column;
+        padding: 10px;
+      }
+      .top-nav .header {
+        margin: 10px 0;
+        font-size: 1.5rem;
+      }
+      .login-btn, .register-btn {
+        width: 45%;
+        padding: 12px;
+        font-size: 1rem;
+        min-width: 100px;
+      }
+      .content {
+        margin: 20px auto;
+        padding: 15px;
+        max-width: 90%;
+      }
+      .welcome-section h2 {
+        font-size: 1.5rem;
+      }
+      .content p {
+        font-size: 1rem;
+      }
+      #loginFormContent, #registerForm {
+        max-width: 100%;
+      }
+      input {
+        font-size: 1rem;
+        padding: 8px;
+      }
+      button[type="submit"] {
+        font-size: 1rem;
+        padding: 12px 0;
+      }
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <div class="header">
-    MyVineChurch.Online
+  <!-- Top Navigation -->
+  <div class="top-nav">
+    <button class="login-btn" onclick="toggleLoginForm()">Login</button>
+    <div class="header">MyVineChurch.Online</div>
+    <button class="register-btn" onclick="toggleRegisterForm()">Register</button>
   </div>
 
   <!-- Flash / Status Message -->
@@ -170,85 +263,86 @@
 
   <!-- Main Content -->
   <div class="content">
-    <p>
-      Welcome to MyVineChurch.Online, a place for the Odessa Church family, friends, and guests
-      to grow in faith, stay connected, and manage church activities.
-    </p>
-    <p class="bible-verse">
-      "I am the vine; you are the branches. If you remain in me and I in you, you will bear much fruit."
-      <br>- John 15:5 (NIV)
-    </p>
-    <p class="bible-verse">
-      "Let us not grow weary of doing good, for in due season we will reap, if we do not give up."
-      <br>- Galatians 6:9 (ESV)
-    </p>
-
-    <!-- Login & Register Controls -->
-    <div id="loginControls">
-      <button class="login-btn" onclick="toggleLoginForm()">Login</button>
-      <button class="register-btn" onclick="toggleRegisterForm()">Register</button>
+    <div class="welcome-section">
+      <h2>Welcome to The Vineyard</h2>
+      <p>
+        The Vineyard invites you to explore our community! As a guest, you can check out our Gathering Place to view and add comments to prayers, sermons, and events without signing up. Join us in faith and fellowship.
+      </p>
+      <p class="church-info">
+        <strong>Location:</strong> 2603 N Grandview Ave, Odessa, TX 79761<br>
+        <strong>Service Time:</strong> Sundays at 10:00 AM
+      </p>
+      <p>
+        Visit our Gathering Place: <a href="{{ url_for('public_dashboard.public_index') }}">Explore Now</a>.
+      </p>
+      <p class="bible-verse">
+        "I am the vine; you are the branches. If you remain in me and I in you, you will bear much fruit."<br>
+        — John 15:5 (NIV)
+      </p>
     </div>
 
-    <!-- Login Form -->
-    <form method="POST" action="{{ url_for('auth.login') }}" id="loginFormContent" style="display:none;">
-      <h2>Login</h2>
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <div class="error">
-            {% for m in messages %}
-              <p>{{ m }}</p>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
-      <label for="username">Username:</label>
-      <input type="text" name="username" required placeholder="Enter your username">
+    <div class="form-container">
+      <!-- Login Form -->
+      <form method="POST" action="{{ url_for('auth.login') }}" id="loginFormContent" style="display:none;">
+        <h2>Login</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="error">
+              {% for m in messages %}
+                <p>{{ m }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <label for="username">Username:</label>
+        <input type="text" name="username" required placeholder="Enter your username">
 
-      <label for="password">Password:</label>
-      <input type="password" name="password" required placeholder="Enter your password">
+        <label for="password">Password:</label>
+        <input type="password" name="password" required placeholder="Enter your password">
 
-      <label>Username & Password Are Case Sensitive</label>
-      <button type="submit">Login</button>
-    </form>
+        <label>Username & Password Are Case Sensitive</label>
+        <button type="submit">Login</button>
+      </form>
+
+      <!-- Register Form -->
+      <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm" style="display:none;">
+        <h2>Register</h2>
+        <label for="first_name">First Name:</label>
+        <input type="text" name="first_name" required placeholder="Enter your first name">
+
+        <label for="last_name">Last Name:</label>
+        <input type="text" name="last_name" required placeholder="Enter your last name">
+
+        <label for="email">Email:</label>
+        <input type="email" name="email" required placeholder="Enter your email">
+
+        <label for="phone">Phone:</label>
+        <input type="text" name="phone" placeholder="Enter your phone number">
+
+        <label for="address">Address:</label>
+        <input type="text" name="address" placeholder="Enter your address">
+
+        <label for="username">Username:</label>
+        <input type="text" name="username" required placeholder="Choose a username">
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" required placeholder="Choose a password">
+
+        <label for="confirm_password">Confirm Password:</label>
+        <input type="password" name="confirm_password" required placeholder="Confirm your password">
+
+        <button type="submit">Register</button>
+        <div class="reset-link">
+          <a href="{{ url_for('auth.login') }}">Already have an account? Login here</a>
+        </div>
+      </form>
+    </div>
 
     <!-- Password/Username Reset Links -->
     <div class="reset-link">
       <a href="{{ url_for('auth.request_reset_password') }}">Can't remember password?</a><br>
       <a href="{{ url_for('auth.forgot_username') }}">Forgot Username?</a>
     </div>
-
-    <!-- Register Form -->
-    <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm" style="display:none;">
-      <h2>Register</h2>
-      <label for="first_name">First Name:</label>
-      <input type="text" name="first_name" required placeholder="Enter your first name">
-
-      <label for="last_name">Last Name:</label>
-      <input type="text" name="last_name" required placeholder="Enter your last name">
-
-      <label for="email">Email:</label>
-      <input type="email" name="email" required placeholder="Enter your email">
-
-      <label for="phone">Phone:</label>
-      <input type="text" name="phone" placeholder="Enter your phone number">
-
-      <label for="address">Address:</label>
-      <input type="text" name="address" placeholder="Enter your address">
-
-      <label for="username">Username:</label>
-      <input type="text" name="username" required placeholder="Choose a username">
-
-      <label for="password">Password:</label>
-      <input type="password" name="password" required placeholder="Choose a password">
-
-      <label for="confirm_password">Confirm Password:</label>
-      <input type="password" name="confirm_password" required placeholder="Confirm your password">
-
-      <button type="submit">Register</button>
-      <div class="reset-link">
-        <a href="{{ url_for('auth.login') }}">Already have an account? Login here</a>
-      </div>
-    </form>
   </div>
 
   <script>
@@ -257,6 +351,9 @@
       const registerForm = document.getElementById("registerForm");
       loginForm.style.display = loginForm.style.display === "none" ? "block" : "none";
       registerForm.style.display = "none";
+      if (loginForm.style.display === "block") {
+        loginForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
 
     function toggleRegisterForm() {
@@ -264,6 +361,9 @@
       const loginForm = document.getElementById("loginFormContent");
       registerForm.style.display = registerForm.style.display === "none" ? "block" : "none";
       loginForm.style.display = "none";
+      if (registerForm.style.display === "block") {
+        registerForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
   </script>
 

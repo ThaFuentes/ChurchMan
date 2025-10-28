@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard</title>
+  <title>MyVineChurch.Online - Gathering Place</title>
   <style>
     /* Base Styles */
     body {
@@ -26,27 +26,32 @@
     .header {
       position: relative; padding: 20px; text-align: center;
     }
-    .header h1 {
-      margin: 0; font-size: 2em; color: #00FFFF;
+    .header .church-info {
+      margin: 0; font-size: 1.5em; color: #00FFFF; font-weight: bold;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+      line-height: 1.5;
     }
-    .header .clock,
-    .header .logout,
-    .header .change-records {
+    .header .church-info p {
+      margin: 5px 0;
+    }
+    .header .login-btn,
+    .header .register-btn,
+    .header .clock {
       position: absolute; top: 20px;
       background-color: #00FFFF; color: #000;
       padding: 8px 16px;
       border-radius: 4px; font-weight: bold;
       font-size: 0.9em; text-decoration: none;
     }
-    .header .logout  { right: 20px; }
-    .header .clock   {
+    .header .login-btn { left: 20px; }
+    .header .register-btn { right: 20px; }
+    .header .clock {
       right: 150px;
       background-color: #000;
       color: #00FFFF;
       border: 2px solid #00FFFF;
       font-size: 1.1em;
     }
-    .header .change-records { left: 20px; }
 
     /* Tabs Navigation */
     .tabs {
@@ -133,54 +138,54 @@
     }
     .widget-footer a:hover { text-decoration: underline; }
 
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header .church-info {
+        font-size: 1.1em;
+      }
+      .header .login-btn, .header .register-btn, .header .clock {
+        font-size: 0.8em;
+        padding: 6px 12px;
+      }
+      .header .clock { right: 120px; }
+      .tabs a.tab { font-size: 0.9em; padding: 10px; }
+      .wide-widget h2, .widget h2 { font-size: 1.3em; }
+      .wide-widget li, .widget li { font-size: 0.9em; }
+      .dashboard-content { padding: 10px; }
+    }
   </style>
 </head>
 <body>
 
   <div class="header-container">
     <div class="header">
-      <h1>Welcome, {{ username }}!</h1>
+      <div class="church-info">
+        <p>The Vineyard</p>
+        <p>Join Us: Sundays at 10:00 AM</p>
+        <p>Location: 2603 N Grandview Ave, Odessa, TX 79761</p>
+      </div>
+      <a href="{{ url_for('auth.login') }}" class="login-btn">Login</a>
+      <a href="{{ url_for('auth.register') }}" class="register-btn">Register</a>
       <div class="clock" id="clock"></div>
-      <a href="{{ url_for('auth.logout') }}" class="logout">Logout</a>
-      {% if role == 'Owner' %}
-        <a href="{{ url_for('change_records') }}" class="change-records">Change Records</a>
-      {% endif %}
     </div>
 
     <nav class="tabs">
-      <a href="{{ url_for('dashboard') }}" class="tab active">Dashboard</a>
-      <a href="{{ url_for('profile.profile') }}" class="tab">Profile</a>
-
-      {% if role in ['Member','Staff','Admin','Owner'] %}
+      <a href="{{ url_for('public_dashboard.public_index') }}" class="tab active">Gathering Place</a>
       <div class="dropdown">
         <a href="#" class="tab">The Gathering Place</a>
         <div class="dropdown-content">
-          <a href="{{ url_for('event.events') }}">Church Events</a>
-          <a href="{{ url_for('prayer.prayers') }}">Prayer Requests</a>
-          <a href="{{ url_for('sermons.sermons') }}">Uploaded Sermons</a>
-          <a href="{{ url_for('dreams.dreams') }}">Dreams &amp; Visions</a>
-          <a href="{{ url_for('prophecy.list_prophecies') }}">Prophecies</a>
-          <a href="{{ url_for('announcements.view_announcements') }}">Announcements</a>
+          <a href="#">Prayer Requests (Coming Soon)</a>
+          <a href="#">Uploaded Sermons (Coming Soon)</a>
+          <a href="#">Dreams & Visions (Coming Soon)</a>
+          <a href="#">Prophecies (Coming Soon)</a>
+          <a href="#">Announcements (Coming Soon)</a>
+          <a href="#">Church Events (Coming Soon)</a>
         </div>
       </div>
-      {% endif %}
-
-      {% if role in ['Staff','Admin','Owner'] %}
-      <div class="dropdown">
-        <a href="#" class="tab">Admin Tools</a>
-        <div class="dropdown-content">
-          <a href="{{ url_for('members.members_directory') }}">Members Directory</a>
-          <a href="{{ url_for('donations.donations_dashboard') }}">Donation Management</a>
-          <a href="{{ url_for('settings.general_settings') }}">Settings</a>
-        </div>
-      </div>
-      {% endif %}
     </nav>
   </div>
 
   <div class="dashboard-content">
-
-    {# Announcements: only show if there's at least one #}
     {% if announcements %}
     <div class="wide-widget">
       <h2>Recent Announcements</h2>
@@ -188,31 +193,17 @@
         {% for a in announcements %}
           <li>
             <strong>{{ a.title }}</strong><br>
-            {{ a.datetime }} by {{ a.posted_by or '–' }}
+            {{ a.created_at }} by {{ a.posted_by or 'Anonymous' }}
           </li>
         {% endfor %}
       </ul>
       <div class="widget-footer">
-        <a href="{{ url_for('announcements.view_announcements') }}">
-          View All Announcements&nbsp;&raquo;
-        </a>
+        <a href="#">View All Announcements (Coming Soon)</a>
       </div>
     </div>
     {% endif %}
 
     <div class="grid-widgets">
-
-      <div class="widget">
-        <h2>Birthdays In The Next 30 Days</h2>
-        <ul>
-          {% for b in birthdays_upcoming %}
-            <li>{{ b.first_name }} {{ b.last_name }} — {{ b.birthday[5:] }}</li>
-          {% else %}
-            <li>No upcoming birthdays.</li>
-          {% endfor %}
-        </ul>
-      </div>
-
       <div class="widget">
         <h2>Upcoming Events</h2>
         <ul>
@@ -223,7 +214,7 @@
           {% endfor %}
         </ul>
         <div class="widget-footer">
-          <a href="{{ url_for('event.events') }}">View All Events&nbsp;&raquo;</a>
+          <a href="#">View All Events (Coming Soon)</a>
         </div>
       </div>
 
@@ -238,42 +229,41 @@
         </ul>
       </div>
 
+      {% if dreams %}
       <div class="widget">
         <h2>Recent Dreams &amp; Visions</h2>
         <ul>
           {% for d in dreams %}
-            <li><strong>{{ d.title }}</strong><br>{{ d.datetime }} by {{ d.posted_by or '–' }}</li>
-          {% else %}
-            <li>No dreams or visions yet.</li>
+            <li><strong>{{ d.title }}</strong><br>{{ d.datetime }} by {{ d.posted_by or 'Anonymous' }}</li>
           {% endfor %}
         </ul>
       </div>
+      {% endif %}
 
+      {% if prophecies %}
       <div class="widget">
         <h2>Recent Prophecies</h2>
         <ul>
           {% for pr in prophecies %}
-            <li><strong>{{ pr.title }}</strong><br>{{ pr.datetime }} by {{ pr.posted_by or '–' }}</li>
-          {% else %}
-            <li>No prophecies yet.</li>
+            <li><strong>{{ pr.title }}</strong><br>{{ pr.datetime }} by {{ pr.posted_by or 'Anonymous' }}</li>
           {% endfor %}
         </ul>
       </div>
+      {% endif %}
 
+      {% if sermons %}
       <div class="widget">
         <h2>Recent Sermons</h2>
         <ul>
           {% for s in sermons %}
-            <li><strong>{{ s.title }}</strong><br>{{ s.datetime }} by {{ s.posted_by or '–' }}</li>
-          {% else %}
-            <li>No sermons uploaded yet.</li>
+            <li><strong>{{ s.title }}</strong><br>{{ s.datetime }} by {{ s.posted_by or 'Anonymous' }}</li>
           {% endfor %}
         </ul>
         <div class="widget-footer">
-          <a href="{{ url_for('sermons.sermons') }}">View All Sermons&nbsp;&raquo;</a>
+          <a href="#">View All Sermons (Coming Soon)</a>
         </div>
       </div>
-
+      {% endif %}
     </div>
   </div>
 

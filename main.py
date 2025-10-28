@@ -21,6 +21,7 @@ from dreams import dreams_bp  # Import the blueprint for dreams
 from prophecy import prophecy_bp  # Import the blueprint for prophecy
 from announcements import announcements_bp  # Import the announcements blueprint
 from web_email import web_email_bp  # Import the web_email blueprint
+from public_dashboard import public_dashboard_bp  # Import the public dashboard blueprint
 from flask_login import LoginManager, current_user  # Import LoginManager
 
 app = Flask(__name__)
@@ -431,6 +432,7 @@ app.register_blueprint(dreams_bp, url_prefix='/dreams')
 app.register_blueprint(prophecy_bp, url_prefix='/prophecies')
 app.register_blueprint(announcements_bp, url_prefix='/announcements')
 app.register_blueprint(web_email_bp, url_prefix='/email')  # You can optionally set a URL prefix
+app.register_blueprint(public_dashboard_bp, url_prefix='/public_dashboard')  # Register public dashboard blueprint
 
 if __name__ == '__main__':
     init_db()  # Initialize the database and create tables if they don't exist
